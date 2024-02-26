@@ -1,0 +1,408 @@
+{
+    "mnmn": "f2sv",
+    "vid": "ST_82a76bef-9965-4e71-9181-dcf2b6084400",
+    "version": "0.0.1",
+    "type": "profile",
+    "dashboard": {
+        "states": [
+            {
+                "component": "main",
+                "capability": "switch",
+                "version": 1,
+                "group": "Set to Favorite",
+                "values": [
+                    {
+                        "key": "switch.value",
+                        "enabledValues": [
+                            "on",
+                            "off"
+                        ]
+                    }
+                ]
+            },
+            {
+                "component": "main",
+                "capability": "airConditionerMode",
+                "version": 1,
+                "idx": 0,
+                "group": "FlexFit Base",
+                "values": [
+                    {
+                        "key": "airConditionerMode.value",
+                        "enabledValues": [
+                            "Favorite",
+                            "Read",
+                            "Watch TV",
+                            "Flat",
+                            "Zero G",
+                            "Snore"
+                        ]
+                    }
+                ],
+                "composite": false
+            },
+            {
+                "component": "main",
+                "capability": "switchLevel",
+                "version": 1,
+                "values": [
+                    {
+                        "key": "level.value",
+                        "range": [
+                            5,
+                            100
+                        ],
+                        "step": 5
+                    }
+                ],
+                "group": "SleepNumber"
+            },
+            {
+                "component": "footwarming",
+                "capability": "presenceSensor",
+                "version": 1,
+                "group": "Footwarming",
+                "values": [
+                    {
+                        "key": "presenceSensor.presence",
+                        "enabledValues": [
+                            "present",
+                            "not present"
+                        ]
+                    }
+                ]
+            },
+            {
+                "component": "footwarming",
+                "capability": "airConditionerFanMode",
+                "version": 1,
+                "idx": 0,
+                "group": "Footwarming",
+                "values": [
+                    {
+                        "key": "fanMode.value",
+                        "enabledValues": [
+                            "Off",
+                            "Low - 30 Minutes",
+                            "Low - 60 Minutes",
+                            "Medium - 30 Minutes",
+                            "Medium - 60 Minutes",
+                            "High - 30 Minutes",
+                            "High - 60 Minutes"
+                        ]
+                    }
+                ],
+                "composite": false
+            }
+        ],
+        "actions": [
+            {
+                "component": "main",
+                "capability": "switch",
+                "version": 1,
+                "group": "Set to Favorite",
+                "values": [
+                    {
+                        "key": "switch.value",
+                        "enabledValues": [
+                            "on",
+                            "off"
+                        ]
+                    }
+                ]
+            },
+            {
+                "component": "main",
+                "capability": "airConditionerMode",
+                "version": 1,
+                "idx": 0,
+                "group": "FlexFit Base",
+                "values": [
+                    {
+                        "key": "airConditionerMode.value",
+                        "enabledValues": [
+                            "Favorite",
+                            "Read",
+                            "Watch TV",
+                            "Flat",
+                            "Zero G",
+                            "Snore"
+                        ]
+                    }
+                ],
+                "composite": false
+            },
+            {
+                "component": "main",
+                "capability": "switchLevel",
+                "version": 1,
+                "values": [
+                    {
+                        "key": "level.value",
+                        "range": [
+                            5,
+                            100
+                        ],
+                        "step": 5
+                    }
+                ],
+                "group": "SleepNumber"
+            },
+            {
+                "component": "footwarming",
+                "capability": "airConditionerFanMode",
+                "version": 1,
+                "idx": 0,
+                "group": "Footwarming",
+                "values": [
+                    {
+                        "key": "fanMode.value",
+                        "enabledValues": [
+                            "Off",
+                            "Low - 30 Minutes",
+                            "Low - 60 Minutes",
+                            "Medium - 30 Minutes",
+                            "Medium - 60 Minutes",
+                            "High - 30 Minutes",
+                            "High - 60 Minutes"
+                        ]
+                    }
+                ],
+                "composite": false
+            }
+        ],
+        "basicPlus": []
+    },
+    "detailView": [
+        {
+            "component": "main",
+            "capability": "switch",
+            "version": 1,
+            "group": "Set to Favorite",
+            "values": [
+                {
+                    "key": "switch.value",
+                    "enabledValues": [
+                        "on",
+                        "off"
+                    ]
+                }
+            ]
+        },
+        {
+            "component": "main",
+            "capability": "airConditionerMode",
+            "version": 1,
+            "idx": 0,
+            "group": "FlexFit Base",
+            "values": [
+                {
+                    "key": "airConditionerMode.value",
+                    "enabledValues": [
+                        "Favorite",
+                        "Read",
+                        "Watch TV",
+                        "Flat",
+                        "Zero G",
+                        "Snore"
+                    ]
+                }
+            ],
+            "composite": false
+        },
+        {
+            "component": "main",
+            "capability": "switchLevel",
+            "version": 1,
+            "values": [
+                {
+                    "key": "level.value",
+                    "range": [
+                        5,
+                        100
+                    ],
+                    "step": 5
+                }
+            ],
+            "group": "SleepNumber"
+        },
+        {
+            "component": "footwarming",
+            "capability": "airConditionerFanMode",
+            "version": 1,
+            "idx": 0,
+            "group": "Footwarming",
+            "values": [
+                {
+                    "key": "fanMode.value",
+                    "enabledValues": [
+                        "Off",
+                        "Low - 30 Minutes",
+                        "Low - 60 Minutes",
+                        "Medium - 30 Minutes",
+                        "Medium - 60 Minutes",
+                        "High - 30 Minutes",
+                        "High - 60 Minutes"
+                    ]
+                }
+            ],
+            "composite": false
+        }
+    ],
+    "automation": {
+        "conditions": [
+            {
+                "component": "main",
+                "capability": "switch",
+                "version": 1,
+                "group": "Set to Favorite",
+                "values": [
+                    {
+                        "key": "switch.value",
+                        "enabledValues": [
+                            "on",
+                            "off"
+                        ]
+                    }
+                ]
+            },
+            {
+                "component": "main",
+                "capability": "airConditionerMode",
+                "version": 1,
+                "idx": 0,
+                "group": "FlexFit Base",
+                "values": [
+                    {
+                        "key": "airConditionerMode.value",
+                        "enabledValues": [
+                            "Favorite",
+                            "Read",
+                            "Watch TV",
+                            "Flat",
+                            "Zero G",
+                            "Snore"
+                        ]
+                    }
+                ],
+                "composite": false
+            },
+            {
+                "component": "main",
+                "capability": "switchLevel",
+                "version": 1,
+                "values": [
+                    {
+                        "key": "level.value",
+                        "range": [
+                            5,
+                            100
+                        ],
+                        "step": 5
+                    }
+                ],
+                "group": "SleepNumber"
+            },
+            {
+                "component": "footwarming",
+                "capability": "airConditionerFanMode",
+                "version": 1,
+                "idx": 0,
+                "group": "Footwarming",
+                "values": [
+                    {
+                        "key": "fanMode.value",
+                        "enabledValues": [
+                            "Off",
+                            "Low - 30 Minutes",
+                            "Low - 60 Minutes",
+                            "Medium - 30 Minutes",
+                            "Medium - 60 Minutes",
+                            "High - 30 Minutes",
+                            "High - 60 Minutes"
+                        ]
+                    }
+                ],
+                "composite": false
+            }
+        ],
+        "actions": [
+            {
+                "component": "main",
+                "capability": "switch",
+                "version": 1,
+                "group": "Set to Favorite",
+                "values": [
+                    {
+                        "key": "switch.value",
+                        "enabledValues": [
+                            "on",
+                            "off"
+                        ]
+                    }
+                ]
+            },
+            {
+                "component": "main",
+                "capability": "airConditionerMode",
+                "version": 1,
+                "idx": 0,
+                "group": "FlexFit Base",
+                "values": [
+                    {
+                        "key": "airConditionerMode.value",
+                        "enabledValues": [
+                            "Favorite",
+                            "Read",
+                            "Watch TV",
+                            "Flat",
+                            "Zero G",
+                            "Snore"
+                        ]
+                    }
+                ],
+                "composite": false
+            },
+            {
+                "component": "main",
+                "capability": "switchLevel",
+                "version": 1,
+                "values": [
+                    {
+                        "key": "level.value",
+                        "range": [
+                            5,
+                            100
+                        ],
+                        "step": 5
+                    }
+                ],
+                "group": "SleepNumber"
+            },
+            {
+                "component": "footwarming",
+                "capability": "airConditionerFanMode",
+                "version": 1,
+                "idx": 0,
+                "group": "Footwarming",
+                "values": [
+                    {
+                        "key": "fanMode.value",
+                        "enabledValues": [
+                            "Off",
+                            "Low - 30 Minutes",
+                            "Low - 60 Minutes",
+                            "Medium - 30 Minutes",
+                            "Medium - 60 Minutes",
+                            "High - 30 Minutes",
+                            "High - 60 Minutes"
+                        ]
+                    }
+                ],
+                "composite": false
+            }
+        ]
+    },
+    "migration": true,
+    "isAutoUpdateRequired": true
+}

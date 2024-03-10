@@ -562,7 +562,7 @@ function commandRequest($reqId, $auth, $devices)
                         "time" => mapFootWarmingTimeToNumber($time),
                     ];
                     $overrides[$bedId][$side]['footwarmingMode'] = $mode;
-                    $overrides[$bedId][$side]['footwarmingAvailable'] = true;
+                    $overrides[$bedId][$side]['footwarmingAvailable'] = FOOTWARM_AVAILABLE;
                     break;
             }
         }
@@ -644,7 +644,7 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [])
                             "component" => "footwarming",
                             "capability" => "st.presenceSensor",
                             "attribute" => "presence",
-                            "value" => extractOverride($overrides, $id, $side_name, 'footwarmingAvailable') ?: FOOTWARM_NOT_AVAILABLE
+                            "value" => extractOverride($overrides, $id, $side_name, 'footwarmingAvailable') ?: ($side['footwarmingAvailable'] ? FOOTWARM_AVAILABLE : FOOTWARM_NOT_AVAILABLE)
                         ],
                         // Footwarming current value
                         [

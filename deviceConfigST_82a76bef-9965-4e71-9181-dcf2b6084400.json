@@ -62,13 +62,16 @@
                 "capability": "presenceSensor",
                 "version": 1,
                 "group": "Footwarming Available?",
-                "values": [
+                "alternatives": [
                     {
-                        "key": "presenceSensor.presence",
-                        "enabledValues": [
-                            "present",
-                            "not present"
-                        ]
+                        "key": "present",
+                        "value": "Yes",
+                        "type": "present"
+                    },
+                    {
+                        "key": "not present",
+                        "value": "No",
+                        "type": "not present"
                     }
                 ]
             },
@@ -156,6 +159,7 @@
                 "composite": false
             },
             {
+                "label": "SleepNumber",
                 "component": "main",
                 "capability": "switchLevel",
                 "version": 1,

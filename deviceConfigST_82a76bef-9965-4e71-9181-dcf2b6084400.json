@@ -61,7 +61,7 @@
                 "component": "footwarming",
                 "capability": "presenceSensor",
                 "version": 1,
-                "group": "Footwarming",
+                "group": "Footwarming Available?",
                 "values": [
                     {
                         "key": "presenceSensor.presence",
@@ -76,6 +76,14 @@
                 "component": "footwarming",
                 "capability": "airConditionerFanMode",
                 "version": 1,
+                "visibleCondition": {
+                    "capability": "presenceSensor",
+                    "version": 1,
+                    "component": "footwarming",
+                    "value": "presence.value",
+                    "operator": "EQUALS",
+                    "operand": "present"
+                },
                 "idx": 0,
                 "group": "Footwarming",
                 "values": [
@@ -83,12 +91,27 @@
                         "key": "fanMode.value",
                         "enabledValues": [
                             "Off",
-                            "Low - 30 Minutes",
-                            "Low - 60 Minutes",
-                            "Medium - 30 Minutes",
-                            "Medium - 60 Minutes",
-                            "High - 30 Minutes",
-                            "High - 60 Minutes"
+                            "Low - 30 min",
+                            "Low - 1 hr",
+                            "Low - 2 hrs",
+                            "Low - 3 hrs",
+                            "Low - 4 hrs",
+                            "Low - 5 hrs",
+                            "Low - 6 hrs",
+                            "Medium - 30 min",
+                            "Medium - 1 hr",
+                            "Medium - 2 hrs",
+                            "Medium - 3 hrs",
+                            "Medium - 4 hrs",
+                            "Medium - 5 hrs",
+                            "Medium - 6 hrs",
+                            "High - 30 min",
+                            "High - 1 hr",
+                            "High - 2 hrs",
+                            "High - 3 hrs",
+                            "High - 4 hrs",
+                            "High - 5 hrs",
+                            "High - 6 hrs"
                         ]
                     }
                 ],
@@ -152,6 +175,14 @@
                 "component": "footwarming",
                 "capability": "airConditionerFanMode",
                 "version": 1,
+                "visibleCondition": {
+                    "capability": "presenceSensor",
+                    "version": 1,
+                    "component": "footwarming",
+                    "value": "presence.value",
+                    "operator": "EQUALS",
+                    "operand": "present"
+                },
                 "idx": 0,
                 "group": "Footwarming",
                 "values": [
@@ -159,12 +190,27 @@
                         "key": "fanMode.value",
                         "enabledValues": [
                             "Off",
-                            "Low - 30 Minutes",
-                            "Low - 60 Minutes",
-                            "Medium - 30 Minutes",
-                            "Medium - 60 Minutes",
-                            "High - 30 Minutes",
-                            "High - 60 Minutes"
+                            "Low - 30 min",
+                            "Low - 1 hr",
+                            "Low - 2 hrs",
+                            "Low - 3 hrs",
+                            "Low - 4 hrs",
+                            "Low - 5 hrs",
+                            "Low - 6 hrs",
+                            "Medium - 30 min",
+                            "Medium - 1 hr",
+                            "Medium - 2 hrs",
+                            "Medium - 3 hrs",
+                            "Medium - 4 hrs",
+                            "Medium - 5 hrs",
+                            "Medium - 6 hrs",
+                            "High - 30 min",
+                            "High - 1 hr",
+                            "High - 2 hrs",
+                            "High - 3 hrs",
+                            "High - 4 hrs",
+                            "High - 5 hrs",
+                            "High - 6 hrs"
                         ]
                     }
                 ],
@@ -230,6 +276,14 @@
             "component": "footwarming",
             "capability": "airConditionerFanMode",
             "version": 1,
+            "visibleCondition": {
+                "capability": "presenceSensor",
+                "version": 1,
+                "component": "footwarming",
+                "value": "presence.value",
+                "operator": "EQUALS",
+                "operand": "present"
+            },
             "idx": 0,
             "group": "Footwarming",
             "values": [
@@ -237,12 +291,27 @@
                     "key": "fanMode.value",
                     "enabledValues": [
                         "Off",
-                        "Low - 30 Minutes",
-                        "Low - 60 Minutes",
-                        "Medium - 30 Minutes",
-                        "Medium - 60 Minutes",
-                        "High - 30 Minutes",
-                        "High - 60 Minutes"
+                        "Low - 30 min",
+                        "Low - 1 hr",
+                        "Low - 2 hrs",
+                        "Low - 3 hrs",
+                        "Low - 4 hrs",
+                        "Low - 5 hrs",
+                        "Low - 6 hrs",
+                        "Medium - 30 min",
+                        "Medium - 1 hr",
+                        "Medium - 2 hrs",
+                        "Medium - 3 hrs",
+                        "Medium - 4 hrs",
+                        "Medium - 5 hrs",
+                        "Medium - 6 hrs",
+                        "High - 30 min",
+                        "High - 1 hr",
+                        "High - 2 hrs",
+                        "High - 3 hrs",
+                        "High - 4 hrs",
+                        "High - 5 hrs",
+                        "High - 6 hrs"
                     ]
                 }
             ],
@@ -307,6 +376,14 @@
                 "component": "footwarming",
                 "capability": "airConditionerFanMode",
                 "version": 1,
+                "visibleCondition": {
+                    "capability": "presenceSensor",
+                    "version": 1,
+                    "component": "footwarming",
+                    "value": "presence.value",
+                    "operator": "EQUALS",
+                    "operand": "present"
+                },
                 "idx": 0,
                 "group": "Footwarming",
                 "values": [
@@ -314,12 +391,27 @@
                         "key": "fanMode.value",
                         "enabledValues": [
                             "Off",
-                            "Low - 30 Minutes",
-                            "Low - 60 Minutes",
-                            "Medium - 30 Minutes",
-                            "Medium - 60 Minutes",
-                            "High - 30 Minutes",
-                            "High - 60 Minutes"
+                            "Low - 30 min",
+                            "Low - 1 hr",
+                            "Low - 2 hrs",
+                            "Low - 3 hrs",
+                            "Low - 4 hrs",
+                            "Low - 5 hrs",
+                            "Low - 6 hrs",
+                            "Medium - 30 min",
+                            "Medium - 1 hr",
+                            "Medium - 2 hrs",
+                            "Medium - 3 hrs",
+                            "Medium - 4 hrs",
+                            "Medium - 5 hrs",
+                            "Medium - 6 hrs",
+                            "High - 30 min",
+                            "High - 1 hr",
+                            "High - 2 hrs",
+                            "High - 3 hrs",
+                            "High - 4 hrs",
+                            "High - 5 hrs",
+                            "High - 6 hrs"
                         ]
                     }
                 ],
@@ -383,6 +475,14 @@
                 "component": "footwarming",
                 "capability": "airConditionerFanMode",
                 "version": 1,
+                "visibleCondition": {
+                    "capability": "presenceSensor",
+                    "version": 1,
+                    "component": "footwarming",
+                    "value": "presence.value",
+                    "operator": "EQUALS",
+                    "operand": "present"
+                },
                 "idx": 0,
                 "group": "Footwarming",
                 "values": [
@@ -390,12 +490,27 @@
                         "key": "fanMode.value",
                         "enabledValues": [
                             "Off",
-                            "Low - 30 Minutes",
-                            "Low - 60 Minutes",
-                            "Medium - 30 Minutes",
-                            "Medium - 60 Minutes",
-                            "High - 30 Minutes",
-                            "High - 60 Minutes"
+                            "Low - 30 min",
+                            "Low - 1 hr",
+                            "Low - 2 hrs",
+                            "Low - 3 hrs",
+                            "Low - 4 hrs",
+                            "Low - 5 hrs",
+                            "Low - 6 hrs",
+                            "Medium - 30 min",
+                            "Medium - 1 hr",
+                            "Medium - 2 hrs",
+                            "Medium - 3 hrs",
+                            "Medium - 4 hrs",
+                            "Medium - 5 hrs",
+                            "Medium - 6 hrs",
+                            "High - 30 min",
+                            "High - 1 hr",
+                            "High - 2 hrs",
+                            "High - 3 hrs",
+                            "High - 4 hrs",
+                            "High - 5 hrs",
+                            "High - 6 hrs"
                         ]
                     }
                 ],

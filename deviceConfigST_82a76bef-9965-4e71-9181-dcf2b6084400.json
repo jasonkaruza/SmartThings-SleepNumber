@@ -62,6 +62,7 @@
                 "capability": "presenceSensor",
                 "version": 1,
                 "group": "Footwarming Available?",
+                "label": "Footwarming",
                 "alternatives": [
                     {
                         "key": "present",
@@ -174,6 +175,25 @@
                     }
                 ],
                 "group": "SleepNumber"
+            },
+            {
+                "component": "footwarming",
+                "capability": "presenceSensor",
+                "version": 1,
+                "group": "Footwarming Available?",
+                "label": "Footwarming",
+                "alternatives": [
+                    {
+                        "key": "present",
+                        "value": "Yes",
+                        "type": "present"
+                    },
+                    {
+                        "key": "not present",
+                        "value": "No",
+                        "type": "not present"
+                    }
+                ]
             },
             {
                 "component": "footwarming",

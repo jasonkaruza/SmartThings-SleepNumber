@@ -533,11 +533,11 @@ function commandRequest($reqId, $auth, $devices)
 
                 case 'setAirConditionerMode':
                     $mode = array_values($command['arguments'])[0];
-                    $mode = mapModeToBedPreset($mode);
+                    $intMode = mapModeToBedPreset($mode);
                     $snCommands[] = [
                         "id" => $bedId,
                         "side" => $side,
-                        "mode" => $mode,
+                        "mode" => $intMode,
                     ];
                     $overrides[$bedId][$side]['mode'] = $mode;
                     break;

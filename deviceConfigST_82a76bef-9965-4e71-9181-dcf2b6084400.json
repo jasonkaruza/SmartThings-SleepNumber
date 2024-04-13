@@ -62,7 +62,6 @@
                 "capability": "presenceSensor",
                 "version": 1,
                 "group": "Footwarming Available?",
-                "label": "Footwarming",
                 "alternatives": [
                     {
                         "key": "present",
@@ -160,7 +159,6 @@
                 "composite": false
             },
             {
-                "label": "SleepNumber",
                 "component": "main",
                 "capability": "switchLevel",
                 "version": 1,
@@ -181,7 +179,6 @@
                 "capability": "presenceSensor",
                 "version": 1,
                 "group": "Footwarming Available?",
-                "label": "Footwarming",
                 "alternatives": [
                     {
                         "key": "present",
@@ -255,7 +252,8 @@
                     "enabledValues": [
                         "on",
                         "off"
-                    ]
+                    ],
+                    "label": "Set to Favorite"
                 }
             ]
         },
@@ -275,9 +273,87 @@
                         "Flat",
                         "Zero G",
                         "Snore"
-                    ]
+                    ],
+                    "label": "FlexFit Base"
                 }
             ],
+            "patch": [
+                {
+                    "op": "add",
+                    "path": "/0/list/state/alternatives",
+                    "value": [
+                        {
+                            "key": "favorite",
+                            "value": "Favorite",
+                            "type": "inactive"
+                        },
+                        {
+                            "key": "read",
+                            "value": "Read",
+                            "type": "active"
+                        },
+                        {
+                            "key": "watchtv",
+                            "value": "Watch TV",
+                            "type": "active"
+                        },
+                        {
+                            "key": "flat",
+                            "value": "Flat",
+                            "type": "active"
+                        },
+                        {
+                            "key": "zerog",
+                            "value": "Zero G",
+                            "type": "active"
+                        },
+                        {
+                            "key": "snore",
+                            "value": "Snore",
+                            "type": "active"
+                        }
+                    ],
+                    "label": "FlexFit Base"
+                },
+                {
+                    "op": "add",
+                    "path": "/0/list/command/alternatives",
+                    "value": [
+                        {
+                            "key": "favorite",
+                            "value": "Favorite",
+                            "type": "inactive"
+                        },
+                        {
+                            "key": "read",
+                            "value": "Read",
+                            "type": "active"
+                        },
+                        {
+                            "key": "watchtv",
+                            "value": "Watch TV",
+                            "type": "active"
+                        },
+                        {
+                            "key": "flat",
+                            "value": "Flat",
+                            "type": "active"
+                        },
+                        {
+                            "key": "zerog",
+                            "value": "Zero G",
+                            "type": "active"
+                        },
+                        {
+                            "key": "snore",
+                            "value": "Snore",
+                            "type": "active"
+                        }
+                    ],
+                    "label": "FlexFit Base"
+                }
+            ],
+            "exclusion": [],
             "composite": false
         },
         {
@@ -291,7 +367,8 @@
                         5,
                         100
                     ],
-                    "step": 5
+                    "step": 5,
+                    "label": "SleepNumber"
                 }
             ],
             "group": "SleepNumber"
@@ -336,7 +413,8 @@
                         "High - 4 hrs",
                         "High - 5 hrs",
                         "High - 6 hrs"
-                    ]
+                    ],
+                    "label": "Footwarming"
                 }
             ],
             "composite": false
@@ -355,7 +433,8 @@
                         "enabledValues": [
                             "on",
                             "off"
-                        ]
+                        ],
+                        "label": "Set to Favorite"
                     }
                 ]
             },
@@ -375,9 +454,50 @@
                             "Flat",
                             "Zero G",
                             "Snore"
-                        ]
+                        ],
+                        "label": "FlexFit Base"
                     }
                 ],
+                "patch": [
+                    {
+                        "op": "add",
+                        "path": "/0/list/alternatives",
+                        "value": [
+                            {
+                                "key": "favorite",
+                                "value": "Favorite",
+                                "type": "inactive"
+                            },
+                            {
+                                "key": "read",
+                                "value": "Read",
+                                "type": "active"
+                            },
+                            {
+                                "key": "watchtv",
+                                "value": "Watch TV",
+                                "type": "active"
+                            },
+                            {
+                                "key": "flat",
+                                "value": "Flat",
+                                "type": "active"
+                            },
+                            {
+                                "key": "zerog",
+                                "value": "Zero G",
+                                "type": "active"
+                            },
+                            {
+                                "key": "snore",
+                                "value": "Snore",
+                                "type": "active"
+                            }
+                        ],
+                        "label": "FlexFit Base"
+                    }
+                ],
+                "exclusion": [],
                 "composite": false
             },
             {
@@ -391,7 +511,8 @@
                             5,
                             100
                         ],
-                        "step": 5
+                        "step": 5,
+                        "label": "SleepNumber"
                     }
                 ],
                 "group": "SleepNumber"
@@ -436,7 +557,8 @@
                             "High - 4 hrs",
                             "High - 5 hrs",
                             "High - 6 hrs"
-                        ]
+                        ],
+                        "label": "Footwarming"
                     }
                 ],
                 "composite": false
@@ -454,7 +576,8 @@
                         "enabledValues": [
                             "on",
                             "off"
-                        ]
+                        ],
+                        "label": "Set to Favorite"
                     }
                 ]
             },
@@ -474,9 +597,50 @@
                             "Flat",
                             "Zero G",
                             "Snore"
-                        ]
+                        ],
+                        "label": "FlexFit Base"
                     }
                 ],
+                "patch": [
+                    {
+                        "op": "add",
+                        "path": "/0/list/alternatives",
+                        "value": [
+                            {
+                                "key": "favorite",
+                                "value": "Favorite",
+                                "type": "inactive"
+                            },
+                            {
+                                "key": "read",
+                                "value": "Read",
+                                "type": "active"
+                            },
+                            {
+                                "key": "watchtv",
+                                "value": "Watch TV",
+                                "type": "active"
+                            },
+                            {
+                                "key": "flat",
+                                "value": "Flat",
+                                "type": "active"
+                            },
+                            {
+                                "key": "zerog",
+                                "value": "Zero G",
+                                "type": "active"
+                            },
+                            {
+                                "key": "snore",
+                                "value": "Snore",
+                                "type": "active"
+                            }
+                        ],
+                        "label": "FlexFit Base"
+                    }
+                ],
+                "exclusion": [],
                 "composite": false
             },
             {
@@ -490,7 +654,8 @@
                             5,
                             100
                         ],
-                        "step": 5
+                        "step": 5,
+                        "label": "SleepNumber"
                     }
                 ],
                 "group": "SleepNumber"
@@ -535,7 +700,8 @@
                             "High - 4 hrs",
                             "High - 5 hrs",
                             "High - 6 hrs"
-                        ]
+                        ],
+                        "label": "Footwarming"
                     }
                 ],
                 "composite": false

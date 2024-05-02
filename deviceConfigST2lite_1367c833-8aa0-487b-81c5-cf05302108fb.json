@@ -1,6 +1,6 @@
 {
     "mnmn": "f2sv",
-    "vid": "ST_82a76bef-9965-4e71-9181-dcf2b6084400",
+    "vid": "ST_1367c833-8aa0-487b-81c5-cf05302108fb",
     "version": "0.0.1",
     "type": "profile",
     "dashboard": {
@@ -9,16 +9,12 @@
                 "component": "main",
                 "capability": "switch",
                 "version": 1,
+                "idx": 0,
                 "group": "Set to Favorite",
                 "values": [
-                    {
-                        "key": "switch.value",
-                        "enabledValues": [
-                            "on",
-                            "off"
-                        ]
-                    }
-                ]
+                    {}
+                ],
+                "composite": false
             },
             {
                 "component": "main",
@@ -27,17 +23,7 @@
                 "idx": 0,
                 "group": "FlexFit Base",
                 "values": [
-                    {
-                        "key": "airConditionerMode.value",
-                        "enabledValues": [
-                            "Favorite",
-                            "Read",
-                            "Watch TV",
-                            "Flat",
-                            "Zero G",
-                            "Snore"
-                        ]
-                    }
+                    {}
                 ],
                 "composite": false
             },
@@ -45,86 +31,43 @@
                 "component": "main",
                 "capability": "switchLevel",
                 "version": 1,
+                "idx": 0,
+                "group": "SleepNumber",
                 "values": [
-                    {
-                        "key": "level.value",
-                        "range": [
-                            5,
-                            100
-                        ],
-                        "step": 5
-                    }
+                    {}
                 ],
-                "group": "SleepNumber"
+                "composite": false
             },
             {
                 "component": "footwarming",
                 "capability": "presenceSensor",
                 "version": 1,
+                "idx": 0,
                 "group": "Footwarming Available?",
-                "alternatives": [
-                    {
-                        "key": "present",
-                        "value": "Yes",
-                        "type": "present"
-                    },
-                    {
-                        "key": "not present",
-                        "value": "No",
-                        "type": "not present"
-                    }
-                ],
                 "values": [
-                    {
-                        "key": "presence.value",
-                        "enabledValues": []
-                    }
-                ]
+                    {}
+                ],
+                "composite": false
             },
             {
                 "component": "footwarming",
                 "capability": "airConditionerFanMode",
                 "version": 1,
-                "visibleCondition": {
-                    "capability": "presenceSensor",
-                    "version": 1,
-                    "component": "footwarming",
-                    "value": "presence.value",
-                    "operator": "EQUALS",
-                    "operand": "present"
-                },
                 "idx": 0,
                 "group": "Footwarming",
                 "values": [
-                    {
-                        "key": "fanMode.value",
-                        "enabledValues": [
-                            "Off",
-                            "Low - 30 min",
-                            "Low - 1 hr",
-                            "Low - 2 hrs",
-                            "Low - 3 hrs",
-                            "Low - 4 hrs",
-                            "Low - 5 hrs",
-                            "Low - 6 hrs",
-                            "Medium - 30 min",
-                            "Medium - 1 hr",
-                            "Medium - 2 hrs",
-                            "Medium - 3 hrs",
-                            "Medium - 4 hrs",
-                            "Medium - 5 hrs",
-                            "Medium - 6 hrs",
-                            "High - 30 min",
-                            "High - 1 hr",
-                            "High - 2 hrs",
-                            "High - 3 hrs",
-                            "High - 4 hrs",
-                            "High - 5 hrs",
-                            "High - 6 hrs"
-                        ]
-                    }
+                    {}
                 ],
-                "composite": false
+                "composite": false,
+                "visibleCondition": {
+                    "component": "footwarming",
+                    "capability": "presenceSensor",
+                    "version": 1,
+                    "value": "presence.value",
+                    "operator": "EQUALS",
+                    "operand": "present",
+                    "isOffline": false
+                }
             }
         ],
         "actions": [
@@ -132,16 +75,9 @@
                 "component": "main",
                 "capability": "switch",
                 "version": 1,
+                "idx": 0,
                 "group": "Set to Favorite",
-                "values": [
-                    {
-                        "key": "switch.value",
-                        "enabledValues": [
-                            "on",
-                            "off"
-                        ]
-                    }
-                ]
+                "inline": null
             },
             {
                 "component": "main",
@@ -149,105 +85,39 @@
                 "version": 1,
                 "idx": 0,
                 "group": "FlexFit Base",
-                "values": [
-                    {
-                        "key": "airConditionerMode.value",
-                        "enabledValues": [
-                            "Favorite",
-                            "Read",
-                            "Watch TV",
-                            "Flat",
-                            "Zero G",
-                            "Snore"
-                        ]
-                    }
-                ],
-                "composite": false
+                "inline": null
             },
             {
                 "component": "main",
                 "capability": "switchLevel",
                 "version": 1,
-                "values": [
-                    {
-                        "key": "level.value",
-                        "range": [
-                            5,
-                            100
-                        ],
-                        "step": 5
-                    }
-                ],
-                "group": "SleepNumber"
+                "idx": 0,
+                "group": "SleepNumber",
+                "inline": null
             },
             {
                 "component": "footwarming",
                 "capability": "presenceSensor",
                 "version": 1,
+                "idx": 0,
                 "group": "Footwarming Available?",
-                "alternatives": [
-                    {
-                        "key": "present",
-                        "value": "Yes",
-                        "type": "present"
-                    },
-                    {
-                        "key": "not present",
-                        "value": "No",
-                        "type": "not present"
-                    }
-                ],
-                "values": [
-                    {
-                        "key": "presence.value",
-                        "enabledValues": []
-                    }
-                ]
+                "inline": null
             },
             {
                 "component": "footwarming",
                 "capability": "airConditionerFanMode",
                 "version": 1,
+                "idx": 0,
+                "group": "Footwarming",
+                "inline": null,
                 "visibleCondition": {
+                    "component": "footwarming",
                     "capability": "presenceSensor",
                     "version": 1,
-                    "component": "footwarming",
                     "value": "presence.value",
                     "operator": "EQUALS",
                     "operand": "present"
-                },
-                "idx": 0,
-                "group": "Footwarming",
-                "values": [
-                    {
-                        "key": "fanMode.value",
-                        "enabledValues": [
-                            "Off",
-                            "Low - 30 min",
-                            "Low - 1 hr",
-                            "Low - 2 hrs",
-                            "Low - 3 hrs",
-                            "Low - 4 hrs",
-                            "Low - 5 hrs",
-                            "Low - 6 hrs",
-                            "Medium - 30 min",
-                            "Medium - 1 hr",
-                            "Medium - 2 hrs",
-                            "Medium - 3 hrs",
-                            "Medium - 4 hrs",
-                            "Medium - 5 hrs",
-                            "Medium - 6 hrs",
-                            "High - 30 min",
-                            "High - 1 hr",
-                            "High - 2 hrs",
-                            "High - 3 hrs",
-                            "High - 4 hrs",
-                            "High - 5 hrs",
-                            "High - 6 hrs"
-                        ]
-                    }
-                ],
-                "composite": false
+                }
             }
         ],
         "basicPlus": []
@@ -257,7 +127,6 @@
             "component": "main",
             "capability": "switch",
             "version": 1,
-            "group": "Set to Favorite",
             "values": [
                 {
                     "key": "switch.value",
@@ -267,24 +136,23 @@
                     ],
                     "label": "Set to Favorite"
                 }
-            ]
+            ],
+            "patch": []
         },
         {
             "component": "main",
             "capability": "airConditionerMode",
             "version": 1,
-            "idx": 0,
-            "group": "FlexFit Base",
             "values": [
                 {
                     "key": "airConditionerMode.value",
                     "enabledValues": [
-                        "Favorite",
-                        "Read",
-                        "Watch TV",
-                        "Flat",
-                        "Zero G",
-                        "Snore"
+                        "favorite",
+                        "read",
+                        "watchtv",
+                        "flat",
+                        "zerog",
+                        "snore"
                     ],
                     "label": "FlexFit Base"
                 }
@@ -324,8 +192,7 @@
                             "value": "Snore",
                             "type": "active"
                         }
-                    ],
-                    "label": "FlexFit Base"
+                    ]
                 },
                 {
                     "op": "add",
@@ -361,12 +228,9 @@
                             "value": "Snore",
                             "type": "active"
                         }
-                    ],
-                    "label": "FlexFit Base"
+                    ]
                 }
-            ],
-            "exclusion": [],
-            "composite": false
+            ]
         },
         {
             "component": "main",
@@ -375,30 +239,21 @@
             "values": [
                 {
                     "key": "level.value",
+                    "enabledValues": [],
+                    "label": "SleepNumber",
                     "range": [
                         5,
                         100
                     ],
-                    "step": 5,
-                    "label": "SleepNumber"
+                    "step": 5
                 }
             ],
-            "group": "SleepNumber"
+            "patch": []
         },
         {
             "component": "footwarming",
             "capability": "airConditionerFanMode",
             "version": 1,
-            "visibleCondition": {
-                "capability": "presenceSensor",
-                "version": 1,
-                "component": "footwarming",
-                "value": "presence.value",
-                "operator": "EQUALS",
-                "operand": "present"
-            },
-            "idx": 0,
-            "group": "Footwarming",
             "values": [
                 {
                     "key": "fanMode.value",
@@ -429,7 +284,15 @@
                     "label": "Footwarming"
                 }
             ],
-            "composite": false
+            "patch": [],
+            "visibleCondition": {
+                "component": "footwarming",
+                "capability": "presenceSensor",
+                "version": 1,
+                "value": "presence.value",
+                "operator": "EQUALS",
+                "operand": "present"
+            }
         }
     ],
     "automation": {
@@ -438,7 +301,6 @@
                 "component": "main",
                 "capability": "switch",
                 "version": 1,
-                "group": "Set to Favorite",
                 "values": [
                     {
                         "key": "switch.value",
@@ -448,24 +310,24 @@
                         ],
                         "label": "Set to Favorite"
                     }
-                ]
+                ],
+                "patch": [],
+                "exclusion": []
             },
             {
                 "component": "main",
                 "capability": "airConditionerMode",
                 "version": 1,
-                "idx": 0,
-                "group": "FlexFit Base",
                 "values": [
                     {
                         "key": "airConditionerMode.value",
                         "enabledValues": [
-                            "Favorite",
-                            "Read",
-                            "Watch TV",
-                            "Flat",
-                            "Zero G",
-                            "Snore"
+                            "favorite",
+                            "read",
+                            "watchtv",
+                            "flat",
+                            "zerog",
+                            "snore"
                         ],
                         "label": "FlexFit Base"
                     }
@@ -505,12 +367,10 @@
                                 "value": "Snore",
                                 "type": "active"
                             }
-                        ],
-                        "label": "FlexFit Base"
+                        ]
                     }
                 ],
-                "exclusion": [],
-                "composite": false
+                "exclusion": []
             },
             {
                 "component": "main",
@@ -519,30 +379,22 @@
                 "values": [
                     {
                         "key": "level.value",
+                        "enabledValues": [],
+                        "label": "SleepNumber",
                         "range": [
                             5,
                             100
                         ],
-                        "step": 5,
-                        "label": "SleepNumber"
+                        "step": 5
                     }
                 ],
-                "group": "SleepNumber"
+                "patch": [],
+                "exclusion": []
             },
             {
                 "component": "footwarming",
                 "capability": "airConditionerFanMode",
                 "version": 1,
-                "visibleCondition": {
-                    "capability": "presenceSensor",
-                    "version": 1,
-                    "component": "footwarming",
-                    "value": "presence.value",
-                    "operator": "EQUALS",
-                    "operand": "present"
-                },
-                "idx": 0,
-                "group": "Footwarming",
                 "values": [
                     {
                         "key": "fanMode.value",
@@ -573,7 +425,16 @@
                         "label": "Footwarming"
                     }
                 ],
-                "composite": false
+                "patch": [],
+                "visibleCondition": {
+                    "component": "footwarming",
+                    "capability": "presenceSensor",
+                    "version": 1,
+                    "value": "presence.value",
+                    "operator": "EQUALS",
+                    "operand": "present"
+                },
+                "exclusion": []
             }
         ],
         "actions": [
@@ -581,7 +442,6 @@
                 "component": "main",
                 "capability": "switch",
                 "version": 1,
-                "group": "Set to Favorite",
                 "values": [
                     {
                         "key": "switch.value",
@@ -591,24 +451,24 @@
                         ],
                         "label": "Set to Favorite"
                     }
-                ]
+                ],
+                "patch": [],
+                "exclusion": []
             },
             {
                 "component": "main",
                 "capability": "airConditionerMode",
                 "version": 1,
-                "idx": 0,
-                "group": "FlexFit Base",
                 "values": [
                     {
                         "key": "airConditionerMode.value",
                         "enabledValues": [
-                            "Favorite",
-                            "Read",
-                            "Watch TV",
-                            "Flat",
-                            "Zero G",
-                            "Snore"
+                            "favorite",
+                            "read",
+                            "watchtv",
+                            "flat",
+                            "zerog",
+                            "snore"
                         ],
                         "label": "FlexFit Base"
                     }
@@ -648,12 +508,10 @@
                                 "value": "Snore",
                                 "type": "active"
                             }
-                        ],
-                        "label": "FlexFit Base"
+                        ]
                     }
                 ],
-                "exclusion": [],
-                "composite": false
+                "exclusion": []
             },
             {
                 "component": "main",
@@ -662,30 +520,22 @@
                 "values": [
                     {
                         "key": "level.value",
+                        "enabledValues": [],
+                        "label": "SleepNumber",
                         "range": [
                             5,
                             100
                         ],
-                        "step": 5,
-                        "label": "SleepNumber"
+                        "step": 5
                     }
                 ],
-                "group": "SleepNumber"
+                "patch": [],
+                "exclusion": []
             },
             {
                 "component": "footwarming",
                 "capability": "airConditionerFanMode",
                 "version": 1,
-                "visibleCondition": {
-                    "capability": "presenceSensor",
-                    "version": 1,
-                    "component": "footwarming",
-                    "value": "presence.value",
-                    "operator": "EQUALS",
-                    "operand": "present"
-                },
-                "idx": 0,
-                "group": "Footwarming",
                 "values": [
                     {
                         "key": "fanMode.value",
@@ -716,10 +566,17 @@
                         "label": "Footwarming"
                     }
                 ],
-                "composite": false
+                "patch": [],
+                "visibleCondition": {
+                    "component": "footwarming",
+                    "capability": "presenceSensor",
+                    "version": 1,
+                    "value": "presence.value",
+                    "operator": "EQUALS",
+                    "operand": "present"
+                },
+                "exclusion": []
             }
         ]
-    },
-    "migration": true,
-    "isAutoUpdateRequired": true
+    }
 }

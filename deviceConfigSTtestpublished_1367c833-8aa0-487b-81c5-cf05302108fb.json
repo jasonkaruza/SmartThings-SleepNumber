@@ -1,0 +1,584 @@
+{
+  "mnmn": "f2sv",
+  "vid": "ST_1367c833-8aa0-487b-81c5-cf05302108fb",
+  "version": "0.0.1",
+  "type": "profile",
+  "dashboard": {
+    "states": [
+      {
+        "component": "main",
+        "capability": "switch",
+        "version": 1,
+        "idx": 0,
+        "group": "Set to Favorite",
+        "values": [
+          {}
+        ],
+        "composite": false
+      },
+      {
+        "component": "main",
+        "capability": "airConditionerMode",
+        "version": 1,
+        "idx": 0,
+        "group": "FlexFit Base",
+        "values": [
+          {}
+        ],
+        "composite": false
+      },
+      {
+        "component": "main",
+        "capability": "switchLevel",
+        "version": 1,
+        "idx": 0,
+        "group": "SleepNumber",
+        "values": [
+          {}
+        ],
+        "composite": false
+      },
+      {
+        "component": "footwarming",
+        "capability": "presenceSensor",
+        "version": 1,
+        "idx": 0,
+        "group": "Footwarming Available?",
+        "values": [
+          {}
+        ],
+        "composite": false
+      },
+      {
+        "component": "footwarming",
+        "capability": "airConditionerFanMode",
+        "version": 1,
+        "idx": 0,
+        "group": "Footwarming",
+        "values": [
+          {}
+        ],
+        "composite": false,
+        "visibleCondition": {
+          "component": "footwarming",
+          "capability": "presenceSensor",
+          "version": 1,
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present",
+          "isOffline": false
+        }
+      }
+    ],
+    "actions": [
+      {
+        "component": "main",
+        "capability": "switch",
+        "version": 1,
+        "idx": 0,
+        "group": "Set to Favorite",
+        "inline": null
+      },
+      {
+        "component": "main",
+        "capability": "airConditionerMode",
+        "version": 1,
+        "idx": 0,
+        "group": "FlexFit Base",
+        "inline": null
+      },
+      {
+        "component": "main",
+        "capability": "switchLevel",
+        "version": 1,
+        "idx": 0,
+        "group": "SleepNumber",
+        "inline": null
+      },
+      {
+        "component": "footwarming",
+        "capability": "presenceSensor",
+        "version": 1,
+        "idx": 0,
+        "group": "Footwarming Available?",
+        "inline": null
+      },
+      {
+        "component": "footwarming",
+        "capability": "airConditionerFanMode",
+        "version": 1,
+        "idx": 0,
+        "group": "Footwarming",
+        "inline": null,
+        "visibleCondition": {
+          "component": "footwarming",
+          "capability": "presenceSensor",
+          "version": 1,
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present"
+        }
+      }
+    ],
+    "basicPlus": []
+  },
+  "detailView": [
+    {
+      "component": "main",
+      "capability": "switch",
+      "version": 1,
+      "values": [
+        {
+          "key": "switch.value",
+          "enabledValues": [
+            "on",
+            "off"
+          ],
+          "label": "Set to Favorite"
+        }
+      ],
+      "patch": []
+    },
+    {
+      "component": "main",
+      "capability": "airConditionerMode",
+      "version": 1,
+      "values": [
+        {
+          "key": "airConditionerMode.value",
+          "enabledValues": [
+            "favorite",
+            "read",
+            "watchtv",
+            "flat",
+            "zerog",
+            "snore"
+          ],
+          "label": "FlexFit Base"
+        }
+      ],
+      "patch": [
+        {
+          "op": "add",
+          "path": "/0/list/state/alternatives",
+          "value": [
+            {
+              "key": "favorite",
+              "value": "Favorite",
+              "type": "inactive"
+            },
+            {
+              "key": "read",
+              "value": "Read",
+              "type": "active"
+            },
+            {
+              "key": "watchtv",
+              "value": "Watch TV",
+              "type": "active"
+            },
+            {
+              "key": "flat",
+              "value": "Flat",
+              "type": "active"
+            },
+            {
+              "key": "zerog",
+              "value": "Zero G",
+              "type": "active"
+            },
+            {
+              "key": "snore",
+              "value": "Snore",
+              "type": "active"
+            }
+          ]
+        },
+        {
+          "op": "add",
+          "path": "/0/list/command/alternatives",
+          "value": [
+            {
+              "key": "favorite",
+              "value": "Favorite",
+              "type": "inactive"
+            },
+            {
+              "key": "read",
+              "value": "Read",
+              "type": "active"
+            },
+            {
+              "key": "watchtv",
+              "value": "Watch TV",
+              "type": "active"
+            },
+            {
+              "key": "flat",
+              "value": "Flat",
+              "type": "active"
+            },
+            {
+              "key": "zerog",
+              "value": "Zero G",
+              "type": "active"
+            },
+            {
+              "key": "snore",
+              "value": "Snore",
+              "type": "active"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "component": "main",
+      "capability": "switchLevel",
+      "version": 1,
+      "values": [
+        {
+          "key": "level.value",
+          "enabledValues": [],
+          "label": "SleepNumber",
+          "range": [
+            5,
+            100
+          ],
+          "step": 5
+        }
+      ],
+      "patch": []
+    },
+    {
+      "component": "footwarming",
+      "capability": "airConditionerFanMode",
+      "version": 1,
+      "values": [
+        {
+          "key": "fanMode.value",
+          "enabledValues": [
+            "Off",
+            "Low - 30 min",
+            "Low - 1 hr",
+            "Low - 2 hrs",
+            "Low - 3 hrs",
+            "Low - 4 hrs",
+            "Low - 5 hrs",
+            "Low - 6 hrs",
+            "Medium - 30 min",
+            "Medium - 1 hr",
+            "Medium - 2 hrs",
+            "Medium - 3 hrs",
+            "Medium - 4 hrs",
+            "Medium - 5 hrs",
+            "Medium - 6 hrs",
+            "High - 30 min",
+            "High - 1 hr",
+            "High - 2 hrs",
+            "High - 3 hrs",
+            "High - 4 hrs",
+            "High - 5 hrs",
+            "High - 6 hrs"
+          ],
+          "label": "Footwarming"
+        }
+      ],
+      "patch": [],
+      "visibleCondition": {
+        "component": "footwarming",
+        "capability": "presenceSensor",
+        "version": 1,
+        "value": "presence.value",
+        "operator": "EQUALS",
+        "operand": "present"
+      }
+    }
+  ],
+  "automation": {
+    "conditions": [
+      {
+        "component": "main",
+        "capability": "switch",
+        "version": 1,
+        "values": [
+          {
+            "key": "switch.value",
+            "enabledValues": [
+              "on",
+              "off"
+            ],
+            "label": "Set to Favorite"
+          }
+        ],
+        "patch": [],
+        "exclusion": []
+      },
+      {
+        "component": "main",
+        "capability": "airConditionerMode",
+        "version": 1,
+        "values": [
+          {
+            "key": "airConditionerMode.value",
+            "enabledValues": [
+              "favorite",
+              "read",
+              "watchtv",
+              "flat",
+              "zerog",
+              "snore"
+            ],
+            "label": "FlexFit Base"
+          }
+        ],
+        "patch": [
+          {
+            "op": "add",
+            "path": "/0/list/alternatives",
+            "value": [
+              {
+                "key": "favorite",
+                "value": "Favorite",
+                "type": "inactive"
+              },
+              {
+                "key": "read",
+                "value": "Read",
+                "type": "active"
+              },
+              {
+                "key": "watchtv",
+                "value": "Watch TV",
+                "type": "active"
+              },
+              {
+                "key": "flat",
+                "value": "Flat",
+                "type": "active"
+              },
+              {
+                "key": "zerog",
+                "value": "Zero G",
+                "type": "active"
+              },
+              {
+                "key": "snore",
+                "value": "Snore",
+                "type": "active"
+              }
+            ]
+          }
+        ],
+        "exclusion": []
+      },
+      {
+        "component": "main",
+        "capability": "switchLevel",
+        "version": 1,
+        "values": [
+          {
+            "key": "level.value",
+            "enabledValues": [],
+            "label": "SleepNumber",
+            "range": [
+              5,
+              100
+            ],
+            "step": 5
+          }
+        ],
+        "patch": [],
+        "exclusion": []
+      },
+      {
+        "component": "footwarming",
+        "capability": "airConditionerFanMode",
+        "version": 1,
+        "values": [
+          {
+            "key": "fanMode.value",
+            "enabledValues": [
+              "Off",
+              "Low - 30 min",
+              "Low - 1 hr",
+              "Low - 2 hrs",
+              "Low - 3 hrs",
+              "Low - 4 hrs",
+              "Low - 5 hrs",
+              "Low - 6 hrs",
+              "Medium - 30 min",
+              "Medium - 1 hr",
+              "Medium - 2 hrs",
+              "Medium - 3 hrs",
+              "Medium - 4 hrs",
+              "Medium - 5 hrs",
+              "Medium - 6 hrs",
+              "High - 30 min",
+              "High - 1 hr",
+              "High - 2 hrs",
+              "High - 3 hrs",
+              "High - 4 hrs",
+              "High - 5 hrs",
+              "High - 6 hrs"
+            ],
+            "label": "Footwarming"
+          }
+        ],
+        "patch": [],
+        "visibleCondition": {
+          "component": "footwarming",
+          "capability": "presenceSensor",
+          "version": 1,
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present"
+        },
+        "exclusion": []
+      }
+    ],
+    "actions": [
+      {
+        "component": "main",
+        "capability": "switch",
+        "version": 1,
+        "values": [
+          {
+            "key": "switch.value",
+            "enabledValues": [
+              "on",
+              "off"
+            ],
+            "label": "Set to Favorite"
+          }
+        ],
+        "patch": [],
+        "exclusion": []
+      },
+      {
+        "component": "main",
+        "capability": "airConditionerMode",
+        "version": 1,
+        "values": [
+          {
+            "key": "airConditionerMode.value",
+            "enabledValues": [
+              "favorite",
+              "read",
+              "watchtv",
+              "flat",
+              "zerog",
+              "snore"
+            ],
+            "label": "FlexFit Base"
+          }
+        ],
+        "patch": [
+          {
+            "op": "add",
+            "path": "/0/list/alternatives",
+            "value": [
+              {
+                "key": "favorite",
+                "value": "Favorite",
+                "type": "inactive"
+              },
+              {
+                "key": "read",
+                "value": "Read",
+                "type": "active"
+              },
+              {
+                "key": "watchtv",
+                "value": "Watch TV",
+                "type": "active"
+              },
+              {
+                "key": "flat",
+                "value": "Flat",
+                "type": "active"
+              },
+              {
+                "key": "zerog",
+                "value": "Zero G",
+                "type": "active"
+              },
+              {
+                "key": "snore",
+                "value": "Snore",
+                "type": "active"
+              }
+            ]
+          }
+        ],
+        "exclusion": []
+      },
+      {
+        "component": "main",
+        "capability": "switchLevel",
+        "version": 1,
+        "values": [
+          {
+            "key": "level.value",
+            "enabledValues": [],
+            "label": "SleepNumber",
+            "range": [
+              5,
+              100
+            ],
+            "step": 5
+          }
+        ],
+        "patch": [],
+        "exclusion": []
+      },
+      {
+        "component": "footwarming",
+        "capability": "airConditionerFanMode",
+        "version": 1,
+        "values": [
+          {
+            "key": "fanMode.value",
+            "enabledValues": [
+              "Off",
+              "Low - 30 min",
+              "Low - 1 hr",
+              "Low - 2 hrs",
+              "Low - 3 hrs",
+              "Low - 4 hrs",
+              "Low - 5 hrs",
+              "Low - 6 hrs",
+              "Medium - 30 min",
+              "Medium - 1 hr",
+              "Medium - 2 hrs",
+              "Medium - 3 hrs",
+              "Medium - 4 hrs",
+              "Medium - 5 hrs",
+              "Medium - 6 hrs",
+              "High - 30 min",
+              "High - 1 hr",
+              "High - 2 hrs",
+              "High - 3 hrs",
+              "High - 4 hrs",
+              "High - 5 hrs",
+              "High - 6 hrs"
+            ],
+            "label": "Footwarming"
+          }
+        ],
+        "patch": [],
+        "visibleCondition": {
+          "component": "footwarming",
+          "capability": "presenceSensor",
+          "version": 1,
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present"
+        },
+        "exclusion": []
+      }
+    ]
+  },
+  "migration": true,
+  "isAutoUpdateRequired": true
+}

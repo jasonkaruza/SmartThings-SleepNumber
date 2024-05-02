@@ -29,12 +29,12 @@ define('SWITCH_ON', 'on');
 define('SWITCH_OFF', 'off');
 
 // Bed Preset values
-define('FAVORITE', 1);
-define('READ', 2);
-define('WATCH_TV', 3);
-define('FLAT', 4);
-define('ZERO_G', 5);
-define('SNORE', 6);
+define('FAVORITE', SleepyqPHP::FAVORITE);
+define('READ', SleepyqPHP::READ);
+define('WATCH_TV', SleepyqPHP::WATCH_TV);
+define('FLAT', SleepyqPHP::FLAT);
+define('ZERO_G', SleepyqPHP::ZERO_G);
+define('SNORE', SleepyqPHP::SNORE);
 $BED_PRESETS = [
     FAVORITE => 'Favorite',
     READ => 'Read',
@@ -54,11 +54,12 @@ define('BED_RESET', 'reset');
 define('BED_STATE', 'state');
 define('BED_USER', 'user');
 
-# Base foot-warming
+// Base foot-warming
 define('FOOTWARM_AVAILABLE', 'present'); // For SmartThings presenceSensor
 define('FOOTWARM_NOT_AVAILABLE', 'not present'); // For SmartThings presenceSensor
 define('FOOTWARM_MODE_DELIM', ' - ');
 
+// Footwarming temperature values
 define('FOOTWARM_TEMP_OFF', 'Off');
 define('FOOTWARM_TEMP_LOW', 'Low');
 define('FOOTWARM_TEMP_MEDIUM', 'Medium');
@@ -71,14 +72,22 @@ $FOOTWARM_TEMPS = [
 ];
 $FOOTWARM_TEMPS_MAP = array_flip($FOOTWARM_TEMPS);
 
+// Footwarming duration values
+define('FOOTWARM_TIME_30_MIN', '30 min');
+define('FOOTWARM_TIME_1_HR', '1 hr');
+define('FOOTWARM_TIME_2_HR', '2 hrs');
+define('FOOTWARM_TIME_3_HR', '3 hrs');
+define('FOOTWARM_TIME_4_HR', '4 hrs');
+define('FOOTWARM_TIME_5_HR', '5 hrs');
+define('FOOTWARM_TIME_6_HR', '6 hrs');
 $FOOTWARM_TIMES = [
-    SleepyqPHP::FOOTWARM_30 => '30 min',
-    SleepyqPHP::FOOTWARM_60 => '1 hr',
-    SleepyqPHP::FOOTWARM_120 => '2 hrs',
-    SleepyqPHP::FOOTWARM_180 => '3 hrs',
-    SleepyqPHP::FOOTWARM_240 => '4 hrs',
-    SleepyqPHP::FOOTWARM_300 => '5 hrs',
-    SleepyqPHP::FOOTWARM_360 => '6 hrs',
+    SleepyqPHP::FOOTWARM_30 => FOOTWARM_TIME_30_MIN,
+    SleepyqPHP::FOOTWARM_60 => FOOTWARM_TIME_1_HR,
+    SleepyqPHP::FOOTWARM_120 => FOOTWARM_TIME_2_HR,
+    SleepyqPHP::FOOTWARM_180 => FOOTWARM_TIME_3_HR,
+    SleepyqPHP::FOOTWARM_240 => FOOTWARM_TIME_4_HR,
+    SleepyqPHP::FOOTWARM_300 => FOOTWARM_TIME_5_HR,
+    SleepyqPHP::FOOTWARM_360 => FOOTWARM_TIME_6_HR,
 ];
 $FOOTWARM_TIMES_MAP = array_flip($FOOTWARM_TIMES);
 
@@ -240,7 +249,7 @@ $responseJson = json_encode($response);
 // Send the JSON response back to SmartThings
 header('Content-Type: application/json');
 print $responseJson;
-logtext("RESPONSE: " . print_r($response, true));
+logtext("RESPONSE: " . json_encode($response, JSON_PRETTY_PRINT));
 
 /////////// HANDLERS //////////////
 /**
@@ -441,7 +450,6 @@ function interactionResult($reqId, $auth)
  */
 function stateRefreshRequest($reqId, $auth, $devices)
 {
-    global $BED_PRESETS;
     $idsAndSides = extractExternalDeviceIds($devices);
     $ids = array_keys($idsAndSides);
     $beds = getBedState($ids);
@@ -552,7 +560,14 @@ function commandRequest($reqId, $auth, $devices)
                     break;
 
                 case 'setFanMode':
-                    $mode = array_values($command['arguments'])[0];
+                    $rawmode = $mode = array_values($command['arguments'])[0];
+                    // Check to see if the value contains the delimiter. If not,
+                    // it's probably "Off" and we want to just add on a duration
+                    // that will be ignored, but will allow the splitting to work
+                    // consistently.
+                    if (!str_contains($mode, FOOTWARM_MODE_DELIM)) {
+                        $mode .= FOOTWARM_MODE_DELIM . FOOTWARM_TIME_30_MIN;
+                    }
                     list($temp, $time) = explode(FOOTWARM_MODE_DELIM, $mode);
 
                     $snCommands[] = [
@@ -561,7 +576,7 @@ function commandRequest($reqId, $auth, $devices)
                         "temp" => mapFootWarmingTempToNumber($temp),
                         "time" => mapFootWarmingTimeToNumber($time),
                     ];
-                    $overrides[$bedId][$side]['footwarmingMode'] = $mode;
+                    $overrides[$bedId][$side]['footwarmingMode'] = $rawmode;
                     $overrides[$bedId][$side]['footwarmingAvailable'] = FOOTWARM_AVAILABLE;
                     break;
             }
@@ -708,10 +723,10 @@ function extractExternalDeviceIds(array $devices): array
 /**
  * Iterates through externalIdValues and strips the DEVICE_ID_DELIM + side portion
  * then returns the remaining bit (the actual SleepNumber bed ID)
- * @param $externalDeviceIds array of externalDeviceId values
+ * @param array $externalDeviceIds array of externalDeviceId values
  * @return array of stripped externalDeviceId values to the core SleepNumber Bed ID values
  **/
-function stripSidesFromExternalDeviceIds($externalDeviceIds)
+function stripSidesFromExternalDeviceIds(array $externalDeviceIds): array
 {
     $bedIds = [];
 
@@ -766,9 +781,11 @@ function mapFootWarmingTimeToNumber($timeStringValue)
 
 
 /**
- * Convert a string footwarming temp value to the numeric equivalent from $FOOTWARM_TEMPS_MAP.
+ * Convert a string footwarming temperature value to the numeric equivalent from $FOOTWARM_TEMPS_MAP.
+ * @param string $tempStringValue The string temperature value to look up in $FOOTWARM_TEMPS_MAP
+ * @return int Value in $FOOTWARM_TEMPS_MAP if present. The first value from $FOOTWARM_TEMPS_MAP otherwise.
  */
-function mapFootWarmingTempToNumber($tempStringValue)
+function mapFootWarmingTempToNumber(string $tempStringValue)
 {
     global $FOOTWARM_TEMPS_MAP;
     if (array_key_exists($tempStringValue, $FOOTWARM_TEMPS_MAP)) {
@@ -777,13 +794,31 @@ function mapFootWarmingTempToNumber($tempStringValue)
     return reset($FOOTWARM_TEMPS_MAP);
 }
 
+/**
+ * Take an array (or associative array) and convert the values to lowercase, and
+ * optionally remove whitespaces, as well.
+ * @param array $arrayOfStrings An array or associative array of strings that will have values converted to lowercase
+ * @param bool $stripSpaces Defaults to true. If false, values will not have whitespace stripped, as well.
+ * @return array The converted array
+ */
+function toLc(array $arrayOfStrings, bool $stripSpaces = true): array
+{
+    foreach ($arrayOfStrings as $key => $val) {
+        $arrayOfStrings[$key] = strtolower($val);
+        if ($stripSpaces) {
+            $arrayOfStrings[$key] = preg_replace("/\s+/", "", $arrayOfStrings[$key]);
+        }
+    }
+    return $arrayOfStrings;
+}
+
 ///////////////// SLEEPYQ FUNCTIONS /////////////////
 
 
 /**
  * Get Beds
  */
-function getBeds($withFoundationFeatures = false)
+function getBeds($withFoundationFeatures = false): array
 {
     $client = getClient();
     $beds = $client->beds($withFoundationFeatures);
@@ -803,7 +838,7 @@ function getBeds($withFoundationFeatures = false)
  * Get Bed state
  * @param $bedIds array
  */
-function getBedState($bedIds = [])
+function getBedState($bedIds = []): array
 {
     $client = getClient();
     // Get each bed's current sides' statuses
@@ -842,9 +877,11 @@ function getBedState($bedIds = [])
 } // End function getBedState
 
 /**
- * Reset bed to favorite settings
+ * Reset bed to favorite settings and return results.
+ * @param array $bedIds An array of bed ID values
+ * @return bool Results of setting. True if successful. False otherwise
  */
-function setBedFavorites($bedIds)
+function setBedFavorites(array $bedIds): bool
 {
     $client = getClient();
     foreach ($bedIds as $bedId) {
@@ -859,8 +896,9 @@ function setBedFavorites($bedIds)
 
 /**
  * Reset bed to flat and 100
+ * @param string $bedId The bed ID to reset
  */
-function resetBed($bedId)
+function resetBed(string $bedId)
 {
     $client = getClient();
     $client->resetBed($bedId);
@@ -869,10 +907,10 @@ function resetBed($bedId)
 
 /**
  * Execute commands to modify the bed settings
- * Commands {id => {side => {'id'/'side'/'mode'/'number'/'temp'/'time'}}}
- * Returns a set of unique bed IDs updated
+ * @param $commands Commands {id => {side => {'id'/'side'/'mode'/'number'/'temp'/'time'}}}
+ * @return array Returns a set of unique bed IDs updated
  */
-function sendBedCommands($commands)
+function sendBedCommands(array $commands): array
 {
     $client = getClient();
     $ids = [];
@@ -904,7 +942,7 @@ function sendBedCommands($commands)
  * Get the SleepyqPHP client
  * @return SleepyqPHP object
  */
-function getClient()
+function getClient(): SleepyqPHP
 {
     global $sleepyq;
     // Add the username and password

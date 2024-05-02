@@ -1,6 +1,6 @@
 {
     "mnmn": "f2sv",
-    "vid": "ST_82a76bef-9965-4e71-9181-dcf2b6084400",
+    "vid": "ST_1367c833-8aa0-487b-81c5-cf05302108fb",
     "version": "0.0.1",
     "type": "profile",
     "dashboard": {
@@ -26,19 +26,7 @@
                 "version": 1,
                 "idx": 0,
                 "group": "FlexFit Base",
-                "values": [
-                    {
-                        "key": "airConditionerMode.value",
-                        "enabledValues": [
-                            "Favorite",
-                            "Read",
-                            "Watch TV",
-                            "Flat",
-                            "Zero G",
-                            "Snore"
-                        ]
-                    }
-                ],
+                "values": [],
                 "composite": false
             },
             {
@@ -150,17 +138,7 @@
                 "idx": 0,
                 "group": "FlexFit Base",
                 "values": [
-                    {
-                        "key": "airConditionerMode.value",
-                        "enabledValues": [
-                            "Favorite",
-                            "Read",
-                            "Watch TV",
-                            "Flat",
-                            "Zero G",
-                            "Snore"
-                        ]
-                    }
+                    {}
                 ],
                 "composite": false
             },
@@ -295,32 +273,32 @@
                     "path": "/0/list/state/alternatives",
                     "value": [
                         {
-                            "key": "favorite",
+                            "key": "Favorite",
                             "value": "Favorite",
                             "type": "inactive"
                         },
                         {
-                            "key": "read",
+                            "key": "Read",
                             "value": "Read",
                             "type": "active"
                         },
                         {
-                            "key": "watchtv",
+                            "key": "Watch TV",
                             "value": "Watch TV",
                             "type": "active"
                         },
                         {
-                            "key": "flat",
+                            "key": "Flat",
                             "value": "Flat",
                             "type": "active"
                         },
                         {
-                            "key": "zerog",
+                            "key": "Zero G",
                             "value": "Zero G",
                             "type": "active"
                         },
                         {
-                            "key": "snore",
+                            "key": "Snore",
                             "value": "Snore",
                             "type": "active"
                         }
@@ -332,32 +310,32 @@
                     "path": "/0/list/command/alternatives",
                     "value": [
                         {
-                            "key": "favorite",
+                            "key": "Favorite",
                             "value": "Favorite",
                             "type": "inactive"
                         },
                         {
-                            "key": "read",
+                            "key": "Read",
                             "value": "Read",
                             "type": "active"
                         },
                         {
-                            "key": "watchtv",
+                            "key": "Watch TV",
                             "value": "Watch TV",
                             "type": "active"
                         },
                         {
-                            "key": "flat",
+                            "key": "Flat",
                             "value": "Flat",
                             "type": "active"
                         },
                         {
-                            "key": "zerog",
+                            "key": "Zero G",
                             "value": "Zero G",
                             "type": "active"
                         },
                         {
-                            "key": "snore",
+                            "key": "Snore",
                             "value": "Snore",
                             "type": "active"
                         }
@@ -476,32 +454,32 @@
                         "path": "/0/list/alternatives",
                         "value": [
                             {
-                                "key": "favorite",
+                                "key": "Favorite",
                                 "value": "Favorite",
                                 "type": "inactive"
                             },
                             {
-                                "key": "read",
+                                "key": "Read",
                                 "value": "Read",
                                 "type": "active"
                             },
                             {
-                                "key": "watchtv",
+                                "key": "Watch TV",
                                 "value": "Watch TV",
                                 "type": "active"
                             },
                             {
-                                "key": "flat",
+                                "key": "Flat",
                                 "value": "Flat",
                                 "type": "active"
                             },
                             {
-                                "key": "zerog",
+                                "key": "Zero G",
                                 "value": "Zero G",
                                 "type": "active"
                             },
                             {
-                                "key": "snore",
+                                "key": "Snore",
                                 "value": "Snore",
                                 "type": "active"
                             }
@@ -619,32 +597,32 @@
                         "path": "/0/list/alternatives",
                         "value": [
                             {
-                                "key": "favorite",
+                                "key": "Favorite",
                                 "value": "Favorite",
                                 "type": "inactive"
                             },
                             {
-                                "key": "read",
+                                "key": "Read",
                                 "value": "Read",
                                 "type": "active"
                             },
                             {
-                                "key": "watchtv",
+                                "key": "Watch TV",
                                 "value": "Watch TV",
                                 "type": "active"
                             },
                             {
-                                "key": "flat",
+                                "key": "Flat",
                                 "value": "Flat",
                                 "type": "active"
                             },
                             {
-                                "key": "zerog",
+                                "key": "Zero G",
                                 "value": "Zero G",
                                 "type": "active"
                             },
                             {
-                                "key": "snore",
+                                "key": "Snore",
                                 "value": "Snore",
                                 "type": "active"
                             }

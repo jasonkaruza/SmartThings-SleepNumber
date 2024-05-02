@@ -98,7 +98,7 @@
         "capability": "switch",
         "version": 1,
         "idx": 0,
-        "group": "Set to Favorite",
+        "group": "main",
         "inline": null,
         "values": [
           {
@@ -126,7 +126,6 @@
       "component": "main",
       "capability": "switch",
       "version": 1,
-      "group": "Set to Favorite",
       "values": [
         {
           "key": "switch.value",
@@ -151,7 +150,6 @@
       "capability": "airConditionerMode",
       "version": 1,
       "idx": 0,
-      "group": "FlexFit Base",
       "values": [
         {
           "key": "airConditionerMode.value",
@@ -259,8 +257,7 @@
           "step": 5,
           "label": "SleepNumber"
         }
-      ],
-      "group": "SleepNumber"
+      ]
     },
     {
       "component": "footwarming",
@@ -275,7 +272,6 @@
         "operand": "present"
       },
       "idx": 0,
-      "group": "Footwarming",
       "values": [
         {
           "key": "fanMode.value",
@@ -433,10 +429,11 @@
         "component": "main",
         "capability": "switch",
         "version": 1,
-        "group": "Set to Favorite",
+        "label": "Set to Favorite",
         "values": [
           {
             "key": "switch.value",
+            "label": "Set to Favorite",
             "alternatives": [
               {
                 "key": "on",
@@ -457,10 +454,11 @@
         "capability": "airConditionerMode",
         "version": 1,
         "idx": 0,
-        "group": "FlexFit Base",
+        "label": "FlexFit Base",
         "values": [
           {
             "key": "airConditionerMode.value",
+            "label": "FlexFit Base",
             "enabledValues": [
               "Favorite",
               "Read",
@@ -468,12 +466,12 @@
               "Flat",
               "Zero G",
               "Snore"
-            ],
-            "label": "FlexFit Base"
+            ]
           }
         ],
         "patch": [
           {
+            "label": "FlexFit Base",
             "op": "add",
             "path": "/0/list/alternatives",
             "value": [
@@ -507,8 +505,7 @@
                 "value": "Snore",
                 "type": "active"
               }
-            ],
-            "label": "FlexFit Base"
+            ]
           }
         ],
         "exclusion": [],
@@ -521,15 +518,15 @@
         "values": [
           {
             "key": "level.value",
+            "label": "SleepNumber",
             "range": [
               5,
               100
             ],
-            "step": 5,
-            "label": "SleepNumber"
+            "step": 5
           }
         ],
-        "group": "SleepNumber"
+        "label": "SleepNumber"
       },
       {
         "component": "footwarming",
@@ -544,10 +541,11 @@
           "operand": "present"
         },
         "idx": 0,
-        "group": "Footwarming",
+        "label": "Footwarming",
         "values": [
           {
             "key": "fanMode.value",
+            "label": "Footwarming",
             "enabledValues": [
               "Off",
               "Low - 30 min",
@@ -571,12 +569,12 @@
               "High - 4 hrs",
               "High - 5 hrs",
               "High - 6 hrs"
-            ],
-            "label": "Footwarming"
+            ]
           }
         ],
         "patch": [
           {
+            "label": "Footwarming",
             "op": "add",
             "path": "/0/list/alternatives",
             "value": [
@@ -701,15 +699,22 @@
         "component": "main",
         "capability": "switch",
         "version": 1,
-        "group": "Set to Favorite",
+        "label": "Set to Favorite",
         "values": [
           {
-            "key": "switch.value",
-            "enabledValues": [
-              "on",
-              "off"
-            ],
-            "label": "Set to Favorite"
+            "key": "{{enumCommands}}",
+            "alternatives": [
+              {
+                "key": "on",
+                "value": "Set to Favorite",
+                "type": "active"
+              },
+              {
+                "key": "off",
+                "value": "[Does Nothing]",
+                "type": "inactive"
+              }
+            ]
           }
         ]
       },
@@ -718,10 +723,11 @@
         "capability": "airConditionerMode",
         "version": 1,
         "idx": 0,
-        "group": "FlexFit Base",
+        "label": "FlexFit Base",
         "values": [
           {
-            "key": "airConditionerMode.value",
+            "key": "setAirConditionerMode",
+            "label": "FlexFit Base",
             "enabledValues": [
               "Favorite",
               "Read",
@@ -729,12 +735,12 @@
               "Flat",
               "Zero G",
               "Snore"
-            ],
-            "label": "FlexFit Base"
+            ]
           }
         ],
         "patch": [
           {
+            "label": "FlexFit Base",
             "op": "add",
             "path": "/0/list/alternatives",
             "value": [
@@ -768,8 +774,7 @@
                 "value": "Snore",
                 "type": "active"
               }
-            ],
-            "label": "FlexFit Base"
+            ]
           }
         ],
         "exclusion": [],
@@ -779,9 +784,10 @@
         "component": "main",
         "capability": "switchLevel",
         "version": 1,
+        "label": "SleepNumber",
         "values": [
           {
-            "key": "level.value",
+            "key": "setLevel",
             "range": [
               5,
               100
@@ -789,8 +795,7 @@
             "step": 5,
             "label": "SleepNumber"
           }
-        ],
-        "group": "SleepNumber"
+        ]
       },
       {
         "component": "footwarming",
@@ -805,10 +810,11 @@
           "operand": "present"
         },
         "idx": 0,
-        "group": "Footwarming",
+        "label": "Footwarming",
         "values": [
           {
-            "key": "fanMode.value",
+            "key": "setFanMode",
+            "label": "Footwarming",
             "enabledValues": [
               "Off",
               "Low - 30 min",
@@ -832,12 +838,12 @@
               "High - 4 hrs",
               "High - 5 hrs",
               "High - 6 hrs"
-            ],
-            "label": "Footwarming"
+            ]
           }
         ],
         "patch": [
           {
+            "label": "Footwarming",
             "op": "add",
             "path": "/0/list/alternatives",
             "value": [

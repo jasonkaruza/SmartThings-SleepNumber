@@ -520,6 +520,12 @@ function commandRequest($reqId, $auth, $devices)
 
     $idsAndSides = extractExternalDeviceIds($devices);
 
+    // This will be used to shortcut overriding the sleep number if we got a
+    // command to set a side to the Favorite position and number. This is due
+    // to the API response not returning the target number in a timely manner
+    // relative to the getting of the bed state after sending the command.
+    $devicesSetToFave = [];
+
     // Iterate through each device
     foreach ($devices as $device) {
         $commands = $device['commands'];
@@ -557,6 +563,10 @@ function commandRequest($reqId, $auth, $devices)
                         "fave" => "on",
                     ];
                     $overrides[$bedId][$side]['fave'] = 'on';
+
+                    // This will let us know to set a sleep number override
+                    // further down after getting the bed state
+                    $devicesSetToFave[$bedId][$side] = $side;
                     break;
 
                 case 'setFanMode':
@@ -593,6 +603,11 @@ function commandRequest($reqId, $auth, $devices)
     }
 
     $beds = getBedState($ids);
+    foreach ($devicesSetToFave as $bedId => $sides) {
+        foreach ($sides as $side) {
+            $overrides[$bedId][$side]['number'] = $beds[$bedId]['sides'][$side]['fave'];
+        }
+    }
     parseBedState($beds, $output, $idsAndSides, $overrides);
     return $output;
 } // End function commandRequest

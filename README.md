@@ -23,3 +23,4 @@ To change the DetailView label, put it INSIDE the `values` array's object.
 # [CLI Commands](https://github.com/SmartThingsCommunity/smartthings-cli?tab=readme-ov-file#smartthings-deviceprofiles-id)
 - `smartthings deviceprofiles:publish <profileId>` - Publish a device profile (can't be edited after)
 - `smartthings presentation ST_<id> f2sv -j`
+- `smartthings presentation:device-config ST_e976b515-9b04-46a2-aa3e-d7a6a06c4cba 0AJJ -j -o=newDevConfigPres.json` - Clone a device profile

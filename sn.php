@@ -24,13 +24,17 @@ define('REQUEST_ID', 'requestId');
 define('STATE_REFRESH_REQUEST', 'stateRefreshRequest');
 define('STATE_REFRESH_RESPONSE', 'stateRefreshResponse');
 
+// SmartThings switch values
+define('SWITCH_ON', 'on');
+define('SWITCH_OFF', 'off');
+
 // Bed Preset values
-define('FAVORITE', 1);
-define('READ', 2);
-define('WATCH_TV', 3);
-define('FLAT', 4);
-define('ZERO_G', 5);
-define('SNORE', 6);
+define('FAVORITE', SleepyqPHP::FAVORITE);
+define('READ', SleepyqPHP::READ);
+define('WATCH_TV', SleepyqPHP::WATCH_TV);
+define('FLAT', SleepyqPHP::FLAT);
+define('ZERO_G', SleepyqPHP::ZERO_G);
+define('SNORE', SleepyqPHP::SNORE);
 $BED_PRESETS = [
     FAVORITE => 'Favorite',
     READ => 'Read',
@@ -39,7 +43,6 @@ $BED_PRESETS = [
     ZERO_G => 'Zero G',
     SNORE => 'Snore',
 ];
-
 $BED_PRESETS_MAP = array_flip($BED_PRESETS);
 
 define('BED_COMMAND', 'command');
@@ -51,34 +54,54 @@ define('BED_RESET', 'reset');
 define('BED_STATE', 'state');
 define('BED_USER', 'user');
 
-# Base foot-warming
-define('FOOTWARM_OFF', 0);
-define('FOOTWARM_LOW', 31);
-define('FOOTWARM_MEDIUM', 57);
-define('FOOTWARM_HIGH', 72);
-$FOOTWARM_TEMPS = [
-    FOOTWARM_OFF => 'Off',
-    FOOTWARM_LOW => 'Low',
-    FOOTWARM_MEDIUM => 'Medium',
-    FOOTWARM_HIGH => 'High',
-];
+// Base foot-warming
+define('FOOTWARM_AVAILABLE', 'present'); // For SmartThings presenceSensor
+define('FOOTWARM_NOT_AVAILABLE', 'not present'); // For SmartThings presenceSensor
+define('FOOTWARM_MODE_DELIM', ' - ');
 
-define('FOOTWARM_30', 30);
-define('FOOTWARM_60', 60);
-define('FOOTWARM_120', 120);
-define('FOOTWARM_180', 180);
-define('FOOTWARM_240', 240);
-define('FOOTWARM_300', 300);
-define('FOOTWARM_360', 360);
-$FOOTWARM_TIMES = [
-    FOOTWARM_30 => '30 min',
-    FOOTWARM_60 => '1 hr',
-    FOOTWARM_120 => '2 hrs',
-    FOOTWARM_180 => '3 hrs',
-    FOOTWARM_240 => '4 hrs',
-    FOOTWARM_300 => '5 hrs',
-    FOOTWARM_360 => '6 hrs',
+// Footwarming temperature values
+define('FOOTWARM_TEMP_OFF', 'Off');
+define('FOOTWARM_TEMP_LOW', 'Low');
+define('FOOTWARM_TEMP_MEDIUM', 'Medium');
+define('FOOTWARM_TEMP_HIGH', 'High');
+$FOOTWARM_TEMPS = [
+    SleepyqPHP::FOOTWARM_OFF => FOOTWARM_TEMP_OFF,
+    SleepyqPHP::FOOTWARM_LOW => FOOTWARM_TEMP_LOW,
+    SleepyqPHP::FOOTWARM_MEDIUM => FOOTWARM_TEMP_MEDIUM,
+    SleepyqPHP::FOOTWARM_HIGH => FOOTWARM_TEMP_HIGH,
 ];
+$FOOTWARM_TEMPS_MAP = array_flip($FOOTWARM_TEMPS);
+
+// Footwarming duration values
+define('FOOTWARM_TIME_30_MIN', '30 min');
+define('FOOTWARM_TIME_1_HR', '1 hr');
+define('FOOTWARM_TIME_2_HR', '2 hrs');
+define('FOOTWARM_TIME_3_HR', '3 hrs');
+define('FOOTWARM_TIME_4_HR', '4 hrs');
+define('FOOTWARM_TIME_5_HR', '5 hrs');
+define('FOOTWARM_TIME_6_HR', '6 hrs');
+$FOOTWARM_TIMES = [
+    SleepyqPHP::FOOTWARM_30 => FOOTWARM_TIME_30_MIN,
+    SleepyqPHP::FOOTWARM_60 => FOOTWARM_TIME_1_HR,
+    SleepyqPHP::FOOTWARM_120 => FOOTWARM_TIME_2_HR,
+    SleepyqPHP::FOOTWARM_180 => FOOTWARM_TIME_3_HR,
+    SleepyqPHP::FOOTWARM_240 => FOOTWARM_TIME_4_HR,
+    SleepyqPHP::FOOTWARM_300 => FOOTWARM_TIME_5_HR,
+    SleepyqPHP::FOOTWARM_360 => FOOTWARM_TIME_6_HR,
+];
+$FOOTWARM_TIMES_MAP = array_flip($FOOTWARM_TIMES);
+
+// Create full list of combos
+$FOOTWARM_MODES = [];
+foreach ($FOOTWARM_TEMPS as $temp) {
+    if ($temp == FOOTWARM_TEMP_OFF) {
+        $FOOTWARM_MODES[] = FOOTWARM_TEMP_OFF;
+        continue;
+    }
+    foreach ($FOOTWARM_TIMES as $time) {
+        $FOOTWARM_MODES[] = $temp . FOOTWARM_MODE_DELIM . $time;
+    }
+}
 
 // Others
 define('DEVICE_ID_DELIM', ':');
@@ -123,11 +146,13 @@ if (stripos($content_type, 'application/json') !== false) {
 else {
     // If calling via CLI, it is for testing purposes
     /**
-     * Test commands: (DELETE ME)
-     * - php sn2.php --itype=discoveryRequest
-     * - php sn2.php --itype=stateRefreshRequest --ids=<id>:right
-     * - php sn2.php --itype=commandRequest --devices='[{"externalDeviceId":"<id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"main","capability":"st.switch","command":"on","arguments":[]}]}]'
-     * - php sn2.php --itype=commandRequest --devices='[{"externalDeviceId":"<id>:left","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[80]}]},{"externalDeviceId":"<id>:right","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[85]}]}]'
+     * Test command samples:
+     * - php sn.php --itype=discoveryRequest
+     * - php sn.php --itype=stateRefreshRequest --ids=<bed_id>:right
+     * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:left","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setAirConditionerMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[80]}]},{"externalDeviceId":"<bed_id>:right","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[85]}]}]'
+     * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"main","capability":"st.switch","command":"on","arguments":[]}]}]'
+     * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Low - 30 min"]}]}]'
+     * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Off"]}]}]'
      */
     if (php_sapi_name() == 'cgi-fcgi' || php_sapi_name() == 'cli') {
         $shortopts = '';
@@ -224,7 +249,7 @@ $responseJson = json_encode($response);
 // Send the JSON response back to SmartThings
 header('Content-Type: application/json');
 print $responseJson;
-logtext("RESPONSE: " . print_r($response, true));
+logtext("RESPONSE: " . json_encode($response, JSON_PRETTY_PRINT));
 
 /////////// HANDLERS //////////////
 /**
@@ -247,7 +272,7 @@ logtext("RESPONSE: " . print_r($response, true));
  */
 function discoveryRequest(string $reqId = null, array $auth)
 {
-    $beds = getBeds();
+    $beds = getBeds(false);
 
     $outDevices = [];
     foreach ($beds as $bed) {
@@ -425,11 +450,9 @@ function interactionResult($reqId, $auth)
  */
 function stateRefreshRequest($reqId, $auth, $devices)
 {
-    global $BED_PRESETS;
     $idsAndSides = extractExternalDeviceIds($devices);
     $ids = array_keys($idsAndSides);
-    $client = getClient();
-    $beds = $client->getBedState($ids);
+    $beds = getBedState($ids);
 
     $output = [
         "headers" => [
@@ -439,8 +462,6 @@ function stateRefreshRequest($reqId, $auth, $devices)
             "requestId" => $reqId
         ]
     ];
-    $beds = $client->getBedState($ids);
-
     parseBedState($beds, $output, $idsAndSides);
     return $output;
 } // End function stateRefreshRequest
@@ -499,6 +520,12 @@ function commandRequest($reqId, $auth, $devices)
 
     $idsAndSides = extractExternalDeviceIds($devices);
 
+    // This will be used to shortcut overriding the sleep number if we got a
+    // command to set a side to the Favorite position and number. This is due
+    // to the API response not returning the target number in a timely manner
+    // relative to the getting of the bed state after sending the command.
+    $devicesSetToFave = [];
+
     // Iterate through each device
     foreach ($devices as $device) {
         $commands = $device['commands'];
@@ -520,11 +547,11 @@ function commandRequest($reqId, $auth, $devices)
 
                 case 'setAirConditionerMode':
                     $mode = array_values($command['arguments'])[0];
-                    $mode = mapModeToBedPreset($mode);
+                    $intMode = mapModeToBedPreset($mode);
                     $snCommands[] = [
                         "id" => $bedId,
                         "side" => $side,
-                        "mode" => $mode,
+                        "mode" => $intMode,
                     ];
                     $overrides[$bedId][$side]['mode'] = $mode;
                     break;
@@ -536,6 +563,31 @@ function commandRequest($reqId, $auth, $devices)
                         "fave" => "on",
                     ];
                     $overrides[$bedId][$side]['fave'] = 'on';
+
+                    // This will let us know to set a sleep number override
+                    // further down after getting the bed state
+                    $devicesSetToFave[$bedId][$side] = $side;
+                    break;
+
+                case 'setFanMode':
+                    $rawmode = $mode = array_values($command['arguments'])[0];
+                    // Check to see if the value contains the delimiter. If not,
+                    // it's probably "Off" and we want to just add on a duration
+                    // that will be ignored, but will allow the splitting to work
+                    // consistently.
+                    if (!str_contains($mode, FOOTWARM_MODE_DELIM)) {
+                        $mode .= FOOTWARM_MODE_DELIM . FOOTWARM_TIME_30_MIN;
+                    }
+                    list($temp, $time) = explode(FOOTWARM_MODE_DELIM, $mode);
+
+                    $snCommands[] = [
+                        "id" => $bedId,
+                        "side" => $side,
+                        "temp" => mapFootWarmingTempToNumber($temp),
+                        "time" => mapFootWarmingTimeToNumber($time),
+                    ];
+                    $overrides[$bedId][$side]['footwarmingMode'] = $rawmode;
+                    $overrides[$bedId][$side]['footwarmingAvailable'] = FOOTWARM_AVAILABLE;
                     break;
             }
         }
@@ -551,6 +603,11 @@ function commandRequest($reqId, $auth, $devices)
     }
 
     $beds = getBedState($ids);
+    foreach ($devicesSetToFave as $bedId => $sides) {
+        foreach ($sides as $side) {
+            $overrides[$bedId][$side]['number'] = $beds[$bedId]['sides'][$side]['fave'];
+        }
+    }
     parseBedState($beds, $output, $idsAndSides, $overrides);
     return $output;
 } // End function commandRequest
@@ -571,7 +628,7 @@ function commandRequest($reqId, $auth, $devices)
  */
 function parseBedState($beds, &$output, $idsAndSides, $overrides = [])
 {
-    global $BED_PRESETS;
+    global $BED_PRESETS, $FOOTWARM_MODES;
 
     // Iterate through each bed
     foreach ($beds as $id => $bed) {
@@ -583,30 +640,56 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [])
                     EXTERNAL_DEVICE_ID => $id . DEVICE_ID_DELIM . $side_name,
                     "deviceCookie" => [],
                     "states" => [
+                        // Foundation current preset mode
                         [
                             "component" => "main",
                             "capability" => "st.airConditionerMode",
                             "attribute" => "airConditionerMode",
                             "value" => extractOverride($overrides, $id, $side_name, 'mode') ?: $BED_PRESETS[$side['preset']],
                         ],
+                        // Foundation preset values
                         [
                             "component" => "main",
                             "capability" => "st.airConditionerMode",
                             "attribute" => "supportedAcModes",
                             "value" => array_values($BED_PRESETS),
                         ],
+                        // Bed SleepNumber value
                         [
                             "component" => "main",
                             "capability" => "st.switchLevel",
                             "attribute" => "level",
                             "value" => extractOverride($overrides, $id, $side_name, 'number') ?: $side['sleepnumber'],
                         ],
+                        // Switch to indicate if in Favorite configuration, or not
                         [
                             "component" => "main",
                             "capability" => "st.switch",
                             "attribute" => "switch",
-                            "value" => extractOverride($overrides, $id, $side_name, 'fave') ?: ((($side['preset'] == FAVORITE) && ($side['sleepnumber'] == $side['fave'])) ? "on" : "off")
-                        ]
+                            "value" => extractOverride($overrides, $id, $side_name, 'fave') ?: ((($side['preset'] == FAVORITE) && ($side['sleepnumber'] == $side['fave']))
+                                ? SWITCH_ON : SWITCH_OFF)
+                        ],
+                        // SmartThings presenceSensor indicating if footwarming is available or not
+                        [
+                            "component" => "footwarming",
+                            "capability" => "st.presenceSensor",
+                            "attribute" => "presence",
+                            "value" => extractOverride($overrides, $id, $side_name, 'footwarmingAvailable') ?: ($side['footwarmingAvailable'] ? FOOTWARM_AVAILABLE : FOOTWARM_NOT_AVAILABLE)
+                        ],
+                        // Footwarming current value
+                        [
+                            "component" => "footwarming",
+                            "capability" => "st.airConditionerFanMode",
+                            "attribute" => "fanMode",
+                            "value" => extractOverride($overrides, $id, $side_name, 'footwarmingMode') ?: $side['footwarmingMode'],
+                        ],
+                        // Footwarming possible values
+                        [
+                            "component" => "footwarming",
+                            "capability" => "st.airConditionerFanMode",
+                            "attribute" => "supportedAcFanModes",
+                            "value" => array_values($FOOTWARM_MODES),
+                        ],
                     ]
                 ];
             }
@@ -655,10 +738,10 @@ function extractExternalDeviceIds(array $devices): array
 /**
  * Iterates through externalIdValues and strips the DEVICE_ID_DELIM + side portion
  * then returns the remaining bit (the actual SleepNumber bed ID)
- * @param $externalDeviceIds array of externalDeviceId values
+ * @param array $externalDeviceIds array of externalDeviceId values
  * @return array of stripped externalDeviceId values to the core SleepNumber Bed ID values
  **/
-function stripSidesFromExternalDeviceIds($externalDeviceIds)
+function stripSidesFromExternalDeviceIds(array $externalDeviceIds): array
 {
     $bedIds = [];
 
@@ -686,6 +769,63 @@ function mapModeToBedPreset($modeName)
     }
 } // End function mapModeToBedPreset
 
+/**
+ * Convert array with 'temp' and 'time' keys from SleepNumber API into combo
+ * $FOOTWARM_MODES string.
+ */
+function mapModeToFootWarming($arrayTimeAndTemp)
+{
+    global $FOOTWARM_TEMPS, $FOOTWARM_TIMES;
+    if ($arrayTimeAndTemp['temp'] == SleepyqPHP::FOOTWARM_OFF) {
+        return FOOTWARM_TEMP_OFF;
+    }
+    return $FOOTWARM_TEMPS[$arrayTimeAndTemp['temp']] . FOOTWARM_MODE_DELIM . $FOOTWARM_TIMES[$arrayTimeAndTemp['time']];
+}
+
+/**
+ * Convert a string footwarming time value to the numeric equivalent from $FOOTWARM_TIMES_MAP.
+ */
+function mapFootWarmingTimeToNumber($timeStringValue)
+{
+    global $FOOTWARM_TIMES_MAP;
+    if (array_key_exists($timeStringValue, $FOOTWARM_TIMES_MAP)) {
+        return $FOOTWARM_TIMES_MAP[$timeStringValue];
+    }
+    return reset($FOOTWARM_TIMES_MAP);
+}
+
+
+/**
+ * Convert a string footwarming temperature value to the numeric equivalent from $FOOTWARM_TEMPS_MAP.
+ * @param string $tempStringValue The string temperature value to look up in $FOOTWARM_TEMPS_MAP
+ * @return int Value in $FOOTWARM_TEMPS_MAP if present. The first value from $FOOTWARM_TEMPS_MAP otherwise.
+ */
+function mapFootWarmingTempToNumber(string $tempStringValue)
+{
+    global $FOOTWARM_TEMPS_MAP;
+    if (array_key_exists($tempStringValue, $FOOTWARM_TEMPS_MAP)) {
+        return $FOOTWARM_TEMPS_MAP[$tempStringValue];
+    }
+    return reset($FOOTWARM_TEMPS_MAP);
+}
+
+/**
+ * Take an array (or associative array) and convert the values to lowercase, and
+ * optionally remove whitespaces, as well.
+ * @param array $arrayOfStrings An array or associative array of strings that will have values converted to lowercase
+ * @param bool $stripSpaces Defaults to true. If false, values will not have whitespace stripped, as well.
+ * @return array The converted array
+ */
+function toLc(array $arrayOfStrings, bool $stripSpaces = true): array
+{
+    foreach ($arrayOfStrings as $key => $val) {
+        $arrayOfStrings[$key] = strtolower($val);
+        if ($stripSpaces) {
+            $arrayOfStrings[$key] = preg_replace("/\s+/", "", $arrayOfStrings[$key]);
+        }
+    }
+    return $arrayOfStrings;
+}
 
 ///////////////// SLEEPYQ FUNCTIONS /////////////////
 
@@ -693,10 +833,10 @@ function mapModeToBedPreset($modeName)
 /**
  * Get Beds
  */
-function getBeds()
+function getBeds($withFoundationFeatures = false): array
 {
     $client = getClient();
-    $beds = $client->beds();
+    $beds = $client->beds($withFoundationFeatures);
     foreach ($beds as $k => $bed) {
         $bed->id = $bed->bedId;
         // If a single-sided bed, return just a single value, otherwise two sides
@@ -711,17 +851,52 @@ function getBeds()
 
 /**
  * Get Bed state
+ * @param $bedIds array
  */
-function getBedState($bedIds = [])
+function getBedState($bedIds = []): array
 {
     $client = getClient();
-    return $client->getBedState($bedIds);
+    // Get each bed's current sides' statuses
+    $statuses = $client->getBedSidesStatuses();
+    foreach ($bedIds as $bedId) {
+        $sideFaves = $client->getBedFaves($bedId);
+        $sidePresets = $client->getBedSidePresets($bedId);
+        $foundationFeatures = $client->getFoundationFeatures($bedId);
+        $foundationFootwarming = null;
+        if ($foundationFeatures->hasFootWarming) {
+            $foundationFootwarming = $client->getFoundationFootwarming($bedId);
+        }
+        $data[$bedId] = [
+            'id' => $bedId,
+            'sides' => $sidePresets,
+        ];
+
+        // Ensure bedId in statuses dict
+        if (array_key_exists($bedId, $statuses)) {
+            $bedStatus = $statuses[$bedId];
+
+            foreach (SleepyqPHP::SIDES_NAMES as $side) {
+                if (array_key_exists($side, $bedStatus)) {
+                    $sideStatus = $bedStatus[$side];
+                    if ($sideStatus) {
+                        $data[$bedId]['sides'][$side]['sleepnumber'] = $sideStatus['sleepnumber'];
+                        $data[$bedId]['sides'][$side]['fave'] = $sideFaves[$side];
+                        $data[$bedId]['sides'][$side]['footwarmingAvailable'] = $foundationFeatures->hasFootWarming;
+                        $data[$bedId]['sides'][$side]['footwarmingMode'] = ($foundationFootwarming != null) ? mapModeToFootWarming($foundationFootwarming->sides[$side]) : FOOTWARM_TEMP_OFF; // Array with 'temp' and 'time' keys
+                    }
+                }
+            }
+        }
+    }
+    return $data;
 } // End function getBedState
 
 /**
- * Reset bed to favorite settings
+ * Reset bed to favorite settings and return results.
+ * @param array $bedIds An array of bed ID values
+ * @return bool Results of setting. True if successful. False otherwise
  */
-function setBedFavorites($bedIds)
+function setBedFavorites(array $bedIds): bool
 {
     $client = getClient();
     foreach ($bedIds as $bedId) {
@@ -736,8 +911,9 @@ function setBedFavorites($bedIds)
 
 /**
  * Reset bed to flat and 100
+ * @param string $bedId The bed ID to reset
  */
-function resetBed($bedId)
+function resetBed(string $bedId)
 {
     $client = getClient();
     $client->resetBed($bedId);
@@ -746,10 +922,10 @@ function resetBed($bedId)
 
 /**
  * Execute commands to modify the bed settings
- * Commands {id => {side => {'id'/'side'/'mode'/'number'/'temp'/'timer'}}}
- * Returns a set of unique bed IDs updated
+ * @param $commands Commands {id => {side => {'id'/'side'/'mode'/'number'/'temp'/'time'}}}
+ * @return array Returns a set of unique bed IDs updated
  */
-function sendBedCommands($commands)
+function sendBedCommands(array $commands): array
 {
     $client = getClient();
     $ids = [];
@@ -769,8 +945,8 @@ function sendBedCommands($commands)
         if (in_array('fave', $keys)) {
             $client->setBedSideToFavorite($id, $side);
         }
-        if (in_array('temp', $keys) && in_array('timer', $keys)) {
-            $client->setFoundationFootwarming($side, $command, $command['timer'], $id);
+        if (in_array('temp', $keys) && in_array('time', $keys)) {
+            $client->setFoundationFootwarming($side, $command['temp'], $command['time'], $id);
         }
     }
     return $ids;
@@ -781,7 +957,7 @@ function sendBedCommands($commands)
  * Get the SleepyqPHP client
  * @return SleepyqPHP object
  */
-function getClient()
+function getClient(): SleepyqPHP
 {
     global $sleepyq;
     // Add the username and password

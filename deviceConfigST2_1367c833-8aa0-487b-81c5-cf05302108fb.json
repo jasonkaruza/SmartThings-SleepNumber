@@ -1,0 +1,969 @@
+{
+  "mnmn": "f2sv",
+  "vid": "ST_1367c833-8aa0-487b-81c5-cf05302108fb",
+  "version": "0.0.1",
+  "type": "profile",
+  "dashboard": {
+    "states": [
+      {
+        "component": "main",
+        "capability": "switch",
+        "version": 1,
+        "idx": 0,
+        "group": "main",
+        "values": [
+          {
+            "key": "switch.value",
+            "alternatives": [
+              {
+                "key": "on",
+                "value": "Set to Favorite",
+                "type": "active"
+              },
+              {
+                "key": "off",
+                "value": "Not set to Favorite",
+                "type": "inactive"
+              }
+            ]
+          }
+        ],
+        "composite": false
+      },
+      {
+        "component": "main",
+        "capability": "airConditionerMode",
+        "version": 1,
+        "idx": 0,
+        "group": "FlexFit Base",
+        "values": [],
+        "composite": false
+      },
+      {
+        "component": "main",
+        "capability": "switchLevel",
+        "version": 1,
+        "idx": 0,
+        "group": "SleepNumber",
+        "values": [],
+        "composite": false
+      },
+      {
+        "component": "footwarming",
+        "capability": "presenceSensor",
+        "version": 1,
+        "idx": 0,
+        "group": "Footwarming Available?",
+        "values": [
+          {
+            "label": "{{presence.value}}",
+            "alternatives": [
+              {
+                "key": "present",
+                "value": "Yes",
+                "type": "active"
+              },
+              {
+                "key": "not present",
+                "value": "No",
+                "type": "inactive"
+              }
+            ]
+          }
+        ],
+        "composite": false
+      },
+      {
+        "component": "footwarming",
+        "capability": "airConditionerFanMode",
+        "version": 1,
+        "idx": 0,
+        "group": "Footwarming",
+        "values": [],
+        "composite": false,
+        "visibleCondition": {
+          "component": "footwarming",
+          "capability": "presenceSensor",
+          "version": 1,
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present",
+          "isOffline": false
+        }
+      }
+    ],
+    "actions": [
+      {
+        "component": "main",
+        "capability": "switch",
+        "version": 1,
+        "idx": 0,
+        "group": "main",
+        "inline": null,
+        "values": [
+          {
+            "key": "switch.value",
+            "alternatives": [
+              {
+                "key": "on",
+                "value": "Favorite",
+                "type": "active"
+              },
+              {
+                "key": "off",
+                "value": "Set to Favorite?",
+                "type": "inactive"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "basicPlus": []
+  },
+  "detailView": [
+    {
+      "component": "main",
+      "capability": "switch",
+      "version": 1,
+      "values": [
+        {
+          "key": "switch.value",
+          "alternatives": [
+            {
+              "key": "on",
+              "value": "Favorite",
+              "type": "active"
+            },
+            {
+              "key": "off",
+              "value": "Set to Favorite?",
+              "type": "inactive"
+            }
+          ],
+          "label": "Set to Favorite"
+        }
+      ]
+    },
+    {
+      "component": "main",
+      "capability": "airConditionerMode",
+      "version": 1,
+      "idx": 0,
+      "values": [
+        {
+          "key": "airConditionerMode.value",
+          "enabledValues": [
+            "Favorite",
+            "Read",
+            "Watch TV",
+            "Flat",
+            "Zero G",
+            "Snore"
+          ],
+          "label": "FlexFit Base"
+        }
+      ],
+      "patch": [
+        {
+          "op": "add",
+          "path": "/0/list/state/alternatives",
+          "value": [
+            {
+              "key": "Favorite",
+              "value": "Favorite",
+              "type": "inactive"
+            },
+            {
+              "key": "Read",
+              "value": "Read",
+              "type": "active"
+            },
+            {
+              "key": "Watch TV",
+              "value": "Watch TV",
+              "type": "active"
+            },
+            {
+              "key": "Flat",
+              "value": "Flat",
+              "type": "active"
+            },
+            {
+              "key": "Zero G",
+              "value": "Zero G",
+              "type": "active"
+            },
+            {
+              "key": "Snore",
+              "value": "Snore",
+              "type": "active"
+            }
+          ],
+          "label": "FlexFit Base"
+        },
+        {
+          "op": "add",
+          "path": "/0/list/command/alternatives",
+          "value": [
+            {
+              "key": "Favorite",
+              "value": "Favorite",
+              "type": "inactive"
+            },
+            {
+              "key": "Read",
+              "value": "Read",
+              "type": "active"
+            },
+            {
+              "key": "Watch TV",
+              "value": "Watch TV",
+              "type": "active"
+            },
+            {
+              "key": "Flat",
+              "value": "Flat",
+              "type": "active"
+            },
+            {
+              "key": "Zero G",
+              "value": "Zero G",
+              "type": "active"
+            },
+            {
+              "key": "Snore",
+              "value": "Snore",
+              "type": "active"
+            }
+          ],
+          "label": "FlexFit Base"
+        }
+      ],
+      "exclusion": [],
+      "composite": false
+    },
+    {
+      "component": "main",
+      "capability": "switchLevel",
+      "version": 1,
+      "values": [
+        {
+          "key": "level.value",
+          "range": [
+            5,
+            100
+          ],
+          "step": 5,
+          "label": "SleepNumber"
+        }
+      ]
+    },
+    {
+      "component": "footwarming",
+      "capability": "airConditionerFanMode",
+      "version": 1,
+      "visibleCondition": {
+        "capability": "presenceSensor",
+        "version": 1,
+        "component": "footwarming",
+        "value": "presence.value",
+        "operator": "EQUALS",
+        "operand": "present"
+      },
+      "idx": 0,
+      "values": [
+        {
+          "key": "fanMode.value",
+          "enabledValues": [
+            "Off",
+            "Low - 30 min",
+            "Low - 1 hr",
+            "Low - 2 hrs",
+            "Low - 3 hrs",
+            "Low - 4 hrs",
+            "Low - 5 hrs",
+            "Low - 6 hrs",
+            "Medium - 30 min",
+            "Medium - 1 hr",
+            "Medium - 2 hrs",
+            "Medium - 3 hrs",
+            "Medium - 4 hrs",
+            "Medium - 5 hrs",
+            "Medium - 6 hrs",
+            "High - 30 min",
+            "High - 1 hr",
+            "High - 2 hrs",
+            "High - 3 hrs",
+            "High - 4 hrs",
+            "High - 5 hrs",
+            "High - 6 hrs"
+          ],
+          "label": "Footwarming"
+        }
+      ],
+      "patch": [
+        {
+          "op": "add",
+          "path": "/0/list/state/alternatives",
+          "value": [
+            {
+              "key": "Off",
+              "value": "Off",
+              "type": "inactive"
+            },
+            {
+              "key": "Low - 30 min",
+              "value": "Low - 30 min",
+              "type": "active"
+            },
+            {
+              "key": "Low - 1 hr",
+              "value": "Low - 1 hr",
+              "type": "active"
+            },
+            {
+              "key": "Low - 2 hrs",
+              "value": "Low - 2 hrs",
+              "type": "active"
+            },
+            {
+              "key": "Low - 3 hrs",
+              "value": "Low - 3 hrs",
+              "type": "active"
+            },
+            {
+              "key": "Low - 4 hrs",
+              "value": "Low - 4 hrs",
+              "type": "active"
+            },
+            {
+              "key": "Low - 5 hrs",
+              "value": "Low - 5 hrs",
+              "type": "active"
+            },
+            {
+              "key": "Low - 6 hrs",
+              "value": "Low - 6 hrs",
+              "type": "active"
+            },
+            {
+              "key": "Medium - 30 min",
+              "value": "Medium - 30 min",
+              "type": "active"
+            },
+            {
+              "key": "Medium - 1 hr",
+              "value": "Medium - 1 hr",
+              "type": "active"
+            },
+            {
+              "key": "Medium - 2 hrs",
+              "value": "Medium - 2 hrs",
+              "type": "active"
+            },
+            {
+              "key": "Medium - 3 hrs",
+              "value": "Medium - 3 hrs",
+              "type": "active"
+            },
+            {
+              "key": "Medium - 4 hrs",
+              "value": "Medium - 4 hrs",
+              "type": "active"
+            },
+            {
+              "key": "Medium - 5 hrs",
+              "value": "Medium - 5 hrs",
+              "type": "active"
+            },
+            {
+              "key": "Medium - 6 hrs",
+              "value": "Medium - 6 hrs",
+              "type": "active"
+            },
+            {
+              "key": "High - 30 min",
+              "value": "High - 30 min",
+              "type": "active"
+            },
+            {
+              "key": "High - 1 hr",
+              "value": "High - 1 hr",
+              "type": "active"
+            },
+            {
+              "key": "High - 2 hrs",
+              "value": "High - 2 hrs",
+              "type": "active"
+            },
+            {
+              "key": "High - 3 hrs",
+              "value": "High - 3 hrs",
+              "type": "active"
+            },
+            {
+              "key": "High - 4 hrs",
+              "value": "High - 4 hrs",
+              "type": "active"
+            },
+            {
+              "key": "High - 5 hrs",
+              "value": "High - 5 hrs",
+              "type": "active"
+            },
+            {
+              "key": "High - 6 hrs",
+              "value": "High - 6 hrs",
+              "type": "active"
+            }
+          ]
+        }
+      ],
+      "composite": false
+    }
+  ],
+  "automation": {
+    "conditions": [
+      {
+        "component": "main",
+        "capability": "switch",
+        "version": 1,
+        "label": "Set to Favorite",
+        "values": [
+          {
+            "key": "switch.value",
+            "label": "Set to Favorite",
+            "alternatives": [
+              {
+                "key": "on",
+                "value": "Set to Favorite",
+                "type": "active"
+              },
+              {
+                "key": "off",
+                "value": "[Does Nothing]",
+                "type": "inactive"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "main",
+        "capability": "airConditionerMode",
+        "version": 1,
+        "idx": 0,
+        "label": "FlexFit Base",
+        "values": [
+          {
+            "key": "airConditionerMode.value",
+            "label": "FlexFit Base",
+            "enabledValues": [
+              "Favorite",
+              "Read",
+              "Watch TV",
+              "Flat",
+              "Zero G",
+              "Snore"
+            ]
+          }
+        ],
+        "patch": [
+          {
+            "label": "FlexFit Base",
+            "op": "add",
+            "path": "/0/list/alternatives",
+            "value": [
+              {
+                "key": "Favorite",
+                "value": "Favorite",
+                "type": "inactive"
+              },
+              {
+                "key": "Read",
+                "value": "Read",
+                "type": "active"
+              },
+              {
+                "key": "Watch TV",
+                "value": "Watch TV",
+                "type": "active"
+              },
+              {
+                "key": "Flat",
+                "value": "Flat",
+                "type": "active"
+              },
+              {
+                "key": "Zero G",
+                "value": "Zero G",
+                "type": "active"
+              },
+              {
+                "key": "Snore",
+                "value": "Snore",
+                "type": "active"
+              }
+            ]
+          }
+        ],
+        "exclusion": [],
+        "composite": false
+      },
+      {
+        "component": "main",
+        "capability": "switchLevel",
+        "version": 1,
+        "values": [
+          {
+            "key": "level.value",
+            "label": "SleepNumber",
+            "range": [
+              5,
+              100
+            ],
+            "step": 5
+          }
+        ],
+        "label": "SleepNumber"
+      },
+      {
+        "component": "footwarming",
+        "capability": "airConditionerFanMode",
+        "version": 1,
+        "visibleCondition": {
+          "capability": "presenceSensor",
+          "version": 1,
+          "component": "footwarming",
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present"
+        },
+        "idx": 0,
+        "label": "Footwarming",
+        "values": [
+          {
+            "key": "fanMode.value",
+            "label": "Footwarming",
+            "enabledValues": [
+              "Off",
+              "Low - 30 min",
+              "Low - 1 hr",
+              "Low - 2 hrs",
+              "Low - 3 hrs",
+              "Low - 4 hrs",
+              "Low - 5 hrs",
+              "Low - 6 hrs",
+              "Medium - 30 min",
+              "Medium - 1 hr",
+              "Medium - 2 hrs",
+              "Medium - 3 hrs",
+              "Medium - 4 hrs",
+              "Medium - 5 hrs",
+              "Medium - 6 hrs",
+              "High - 30 min",
+              "High - 1 hr",
+              "High - 2 hrs",
+              "High - 3 hrs",
+              "High - 4 hrs",
+              "High - 5 hrs",
+              "High - 6 hrs"
+            ]
+          }
+        ],
+        "patch": [
+          {
+            "label": "Footwarming",
+            "op": "add",
+            "path": "/0/list/alternatives",
+            "value": [
+              {
+                "key": "Off",
+                "value": "Off",
+                "type": "inactive"
+              },
+              {
+                "key": "Low - 30 min",
+                "value": "Low - 30 min",
+                "type": "active"
+              },
+              {
+                "key": "Low - 1 hr",
+                "value": "Low - 1 hr",
+                "type": "active"
+              },
+              {
+                "key": "Low - 2 hrs",
+                "value": "Low - 2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 3 hrs",
+                "value": "Low - 3 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 4 hrs",
+                "value": "Low - 4 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 5 hrs",
+                "value": "Low - 5 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 6 hrs",
+                "value": "Low - 6 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 30 min",
+                "value": "Medium - 30 min",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 1 hr",
+                "value": "Medium - 1 hr",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 2 hrs",
+                "value": "Medium - 2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 3 hrs",
+                "value": "Medium - 3 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 4 hrs",
+                "value": "Medium - 4 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 5 hrs",
+                "value": "Medium - 5 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 6 hrs",
+                "value": "Medium - 6 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 30 min",
+                "value": "High - 30 min",
+                "type": "active"
+              },
+              {
+                "key": "High - 1 hr",
+                "value": "High - 1 hr",
+                "type": "active"
+              },
+              {
+                "key": "High - 2 hrs",
+                "value": "High - 2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 3 hrs",
+                "value": "High - 3 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 4 hrs",
+                "value": "High - 4 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 5 hrs",
+                "value": "High - 5 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 6 hrs",
+                "value": "High - 6 hrs",
+                "type": "active"
+              }
+            ]
+          }
+        ],
+        "composite": false
+      }
+    ],
+    "actions": [
+      {
+        "component": "main",
+        "capability": "switch",
+        "version": 1,
+        "label": "Set to Favorite",
+        "values": [
+          {
+            "key": "{{enumCommands}}",
+            "alternatives": [
+              {
+                "key": "on",
+                "value": "Set to Favorite",
+                "type": "active"
+              },
+              {
+                "key": "off",
+                "value": "[Does Nothing]",
+                "type": "inactive"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "main",
+        "capability": "airConditionerMode",
+        "version": 1,
+        "idx": 0,
+        "label": "FlexFit Base",
+        "values": [
+          {
+            "key": "setAirConditionerMode",
+            "label": "FlexFit Base",
+            "enabledValues": [
+              "Favorite",
+              "Read",
+              "Watch TV",
+              "Flat",
+              "Zero G",
+              "Snore"
+            ]
+          }
+        ],
+        "patch": [
+          {
+            "label": "FlexFit Base",
+            "op": "add",
+            "path": "/0/list/alternatives",
+            "value": [
+              {
+                "key": "Favorite",
+                "value": "Favorite",
+                "type": "inactive"
+              },
+              {
+                "key": "Read",
+                "value": "Read",
+                "type": "active"
+              },
+              {
+                "key": "Watch TV",
+                "value": "Watch TV",
+                "type": "active"
+              },
+              {
+                "key": "Flat",
+                "value": "Flat",
+                "type": "active"
+              },
+              {
+                "key": "Zero G",
+                "value": "Zero G",
+                "type": "active"
+              },
+              {
+                "key": "Snore",
+                "value": "Snore",
+                "type": "active"
+              }
+            ]
+          }
+        ],
+        "exclusion": [],
+        "composite": false
+      },
+      {
+        "component": "main",
+        "capability": "switchLevel",
+        "version": 1,
+        "label": "SleepNumber",
+        "values": [
+          {
+            "key": "setLevel",
+            "range": [
+              5,
+              100
+            ],
+            "step": 5,
+            "label": "SleepNumber"
+          }
+        ]
+      },
+      {
+        "component": "footwarming",
+        "capability": "airConditionerFanMode",
+        "version": 1,
+        "visibleCondition": {
+          "capability": "presenceSensor",
+          "version": 1,
+          "component": "footwarming",
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present"
+        },
+        "idx": 0,
+        "label": "Footwarming",
+        "values": [
+          {
+            "key": "setFanMode",
+            "label": "Footwarming",
+            "enabledValues": [
+              "Off",
+              "Low - 30 min",
+              "Low - 1 hr",
+              "Low - 2 hrs",
+              "Low - 3 hrs",
+              "Low - 4 hrs",
+              "Low - 5 hrs",
+              "Low - 6 hrs",
+              "Medium - 30 min",
+              "Medium - 1 hr",
+              "Medium - 2 hrs",
+              "Medium - 3 hrs",
+              "Medium - 4 hrs",
+              "Medium - 5 hrs",
+              "Medium - 6 hrs",
+              "High - 30 min",
+              "High - 1 hr",
+              "High - 2 hrs",
+              "High - 3 hrs",
+              "High - 4 hrs",
+              "High - 5 hrs",
+              "High - 6 hrs"
+            ]
+          }
+        ],
+        "patch": [
+          {
+            "label": "Footwarming",
+            "op": "add",
+            "path": "/0/list/alternatives",
+            "value": [
+              {
+                "key": "Off",
+                "value": "Off",
+                "type": "inactive"
+              },
+              {
+                "key": "Low - 30 min",
+                "value": "Low - 30 min",
+                "type": "active"
+              },
+              {
+                "key": "Low - 1 hr",
+                "value": "Low - 1 hr",
+                "type": "active"
+              },
+              {
+                "key": "Low - 2 hrs",
+                "value": "Low - 2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 3 hrs",
+                "value": "Low - 3 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 4 hrs",
+                "value": "Low - 4 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 5 hrs",
+                "value": "Low - 5 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 6 hrs",
+                "value": "Low - 6 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 30 min",
+                "value": "Medium - 30 min",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 1 hr",
+                "value": "Medium - 1 hr",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 2 hrs",
+                "value": "Medium - 2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 3 hrs",
+                "value": "Medium - 3 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 4 hrs",
+                "value": "Medium - 4 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 5 hrs",
+                "value": "Medium - 5 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 6 hrs",
+                "value": "Medium - 6 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 30 min",
+                "value": "High - 30 min",
+                "type": "active"
+              },
+              {
+                "key": "High - 1 hr",
+                "value": "High - 1 hr",
+                "type": "active"
+              },
+              {
+                "key": "High - 2 hrs",
+                "value": "High - 2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 3 hrs",
+                "value": "High - 3 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 4 hrs",
+                "value": "High - 4 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 5 hrs",
+                "value": "High - 5 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 6 hrs",
+                "value": "High - 6 hrs",
+                "type": "active"
+              }
+            ]
+          }
+        ],
+        "composite": false
+      }
+    ]
+  },
+  "migration": true,
+  "isAutoUpdateRequired": true
+}

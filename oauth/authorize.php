@@ -1,13 +1,13 @@
 <?php
 // include our OAuth2 Server object
-require_once __DIR__.'/server.php';
+require_once __DIR__ . '/server.php';
 
 $request = OAuth2\Request::createFromGlobals();
 $response = new OAuth2\Response();
 // validate the authorize request
 if (!$server->validateAuthorizeRequest($request, $response)) {
-    $response->send();
-    die;
+  $response->send();
+  die;
 }
 // display an authorization form
 if (empty($_POST)) {
@@ -67,4 +67,3 @@ if ($is_authorized) {
 }
 */
 $response->send();
-?>

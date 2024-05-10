@@ -1,8 +1,37 @@
 # SmartThingsSleepNumber
-Integration for SleepNumber with Samsung SmartThings
+Integration for SleepNumber with Samsung SmartThings. This makes use of [SleepyqPHP](https://github.com/jasonkaruza/SleepyqPHP) and [oauth2-server-php](https://github.com/jasonkaruza/oauth2-server-php). The latter requires setting up a database wherever the code will be executed for the Oauth functionality to work with Samsung.
+
+The SmartThings device for the SleepNumber bed is a [Cloud Connected Device](https://developer.smartthings.com/devices/cloud-connected). This repo facilitates acting as a proxy between SmartThings and SleepNumber, allowing Samsung to make requests about the beds in your SleepNumber account, this code calling the SleepNumber API via SleepyqPHP, and giving the response back to SmartThings in the structure that's required for each of the required request [Interaction Types](https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types/).
+
+The [capabilities](https://developer.smartthings.com/docs/devices/capabilities/capabilities-reference) that make up the SmartThings device are Production Capabilities, chosen because the had the flexibility needed to override things like the SleepNumber bed's base position or footwarming modes. [Custom Capbililties](https://developer.smartthings.com/docs/devices/capabilities/custom-capabilities) would be optimal, but they are not currently supported with Works with SmartThings certification.
+
+When setting up the Cloud Connector for the device in the Developers Portal, App Credentials are provided by SmartThings, including:
+- App ID
+- Client ID
+- Client Secret (don't lose this)
+
+These values will need to be configured within `oauth/settings.php` in the designated `define()`s. Additionally, under App Details->Device Cloud Credentials you will need to populate the following values:
+- Client ID (add to `oauth/settings.php`)
+- Client Secret (add to `oauth/settings.php`)
+- Authorization URI (this should be the full web-accessible path to the `oauth/authorize.php` file. e.g. https://www.yourdomain.com/st/oauth/authorize.php)
+- Token URI (this should be the full web-accessible path to the `oauth/token.php` file. e.g. https://www.yourdomain.com/st/oauth/token.php)
+- Webhook URL (choose Webhook as the hosting type, and set the value to the full web-accessible path to the `sn.php` file. e.g. https://www.yourdomain.com/st/sn.php)
+
+For the Device Profile, you will need to create a new Profile (I chose a Heated Mattress Pad Device Type, but it doesn't really matter because there is no Smart Bed option) and capture the Device Profile ID to be added to `oauth/settings.php`. The profile should include two components:
+- main (which contains three capabilities)
+  - Switch Level
+  - Switch
+  - Air Conditioner Mode
+- footwarming
+  - Presence Sensor
+  - Air Conditioner Fan Mode
+
+For the UI Display, you will choose to "Customize through device configuration file" and upload the `deviceConfigST2_1367c833-8aa0-487b-81c5-cf05302108fb.json` file.
 
 # Repo installation and setup
 - Rename `oauth/example.settings.php` to `oauth/settings.php` and update all of the `Required` define'd variables
+- The SmartThings Developers account is located at https://developer.smartthings.com/workspace/projects
+- 
 
 # Tips and Setup Instructions
 In the SmartThings app, enable Developer Mode under Menu->Settings gear->Push and hold About SmartThings for 5 seconds->scroll down a bit and see Developer Mode toggle->toggle it on and restart the app.

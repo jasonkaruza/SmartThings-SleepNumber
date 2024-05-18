@@ -1,15 +1,16 @@
 <?php
+
 /**
  * Sample URL:
  * https://computerjourney.com/st/oauth/?
- * client_id=sl33pn#mBer!nt3Gr8ti0n
+ * client_id=<client_id>
  * &redirect_uri=https%3A%2F%2Fc2c-us.smartthings.com%2Foauth%2Fcallback
  * &response_type=code
- * &state=eyJhbGciOiJIUzM4NCJ9.NGM0NDI3MmEtZmYwOC00MmYyLWFhZjktZDc0ZTc2Y2E1MjhhOnZpcGVyX2I0N2E2OWMwLTYxYWEtMTFlZS1hOGViLWZmZjYyNDk4OTM3ODoxNjk2NTYwMjA2OTE2OjMzN2M1MDEwLWFlMWMtNGFiZC1hZTZhLTg4NzFmYzljZDRjZDplbi1VUzo6dHJ1ZQ.-GN2yWD1Ch8-iI1TasKpiqAUvJEwg4jJ1A3QoQDKbVOpzCMgaN9DR6bQnAt_Amy-
+ * &state=<state>
  * &scope=read%2Cwrite
- **/ 
+ **/
 // Load the settings
-require_once('./settings.php');
+require_once 'loader.php';
 
 // https://bshaffer.github.io/oauth2-server-php-docs/
 // Instructions for the server.php and token.php files, etc. 
@@ -38,4 +39,3 @@ $server->addGrantType(new OAuth2\GrantType\ClientCredentials($storage));
 
 // Add the "Authorization Code" grant type (this is where the oauth magic happens)
 $server->addGrantType(new OAuth2\GrantType\AuthorizationCode($storage));
-?>

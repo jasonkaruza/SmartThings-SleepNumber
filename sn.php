@@ -1,6 +1,6 @@
 <?php
 // sn2.php
-require_once "./oauth/settings.php";
+require_once "./oauth/loader.php";
 require_once "./SleepyqPHP/sleepyq.php";
 
 $headers = getallheaders();

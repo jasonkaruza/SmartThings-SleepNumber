@@ -1,6 +1,6 @@
 <?php
 // include our OAuth2 Server object
-require_once __DIR__.'/server.php';
+require_once __DIR__ . '/server.php';
 
 // Add the "Refresh Token" grant type
 // https://bshaffer.github.io/oauth2-server-php-docs/grant-types/refresh-token/
@@ -17,4 +17,3 @@ logtext("Token request:\n" . print_r($request, true));
 $response = $server->handleTokenRequest($request);
 logtext("Token response:\n" . print_r($response, true));
 $response->send();
-?>

@@ -31,3 +31,67 @@ if (!function_exists('getallheaders')) {
         return $headers;
     }
 }
+
+// ENCRYPTION HELPERS //
+
+/**
+ * Compose the key from the settings key value and optional pepper env var
+ * @return string The encryption key
+ */
+function getEncryptionKey()
+{
+    $key = ENCRYPTION_KEY;
+    if (defined('ENCRYPTION_PEPPER')) {
+        $key .= ENCRYPTION_PEPPER;
+    }
+    return $key;
+}
+
+
+/**
+ * Encrypt some data. We will use this for securely storing passwords in the DB.
+ * @param $data The data to encrypt.
+ * @return string The encrypted value
+ */
+function encryptData($data)
+{
+    $key = getEncryptionKey();
+
+    // Generate a random initialization vector (IV)
+    // If needed, use openssl_get_cipher_methods() to check which encryption
+    // methods/ciphers are supported on the system.
+    $is_strong = null;
+    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length(ENCRYPTION_METHOD), $is_strong);
+    if (!$is_strong) {
+        throw new Exception("The use of cipher to generate a random iv for encryption returned a non-strong value. You may want to try another cipher\n\n");
+    }
+
+    // Encrypt the data
+    $encrypted = openssl_encrypt($data, ENCRYPTION_METHOD, $key, OPENSSL_RAW_DATA, $iv);
+
+    // Concatenate the IV and the encrypted data
+    $encrypted = base64_encode($iv . $encrypted);
+    return $encrypted;
+}
+
+/**
+ * Decrypt some data. We will use this for retrieving stored passwords in the DB.
+ * @param $encryptedData The data to decrypt.
+ * @return string The decrypted value
+ */
+function decryptData($encryptedData)
+{
+    $key = getEncryptionKey();
+
+    // Decode the encrypted data
+    $encrypted = base64_decode($encryptedData);
+
+    // Extract the IV and the encrypted data
+    $ivLength = openssl_cipher_iv_length(ENCRYPTION_METHOD);
+    $iv = substr($encrypted, 0, $ivLength);
+    $encrypted = substr($encrypted, $ivLength);
+
+    // Decrypt the data
+    $decrypted = openssl_decrypt($encrypted, ENCRYPTION_METHOD, $key, OPENSSL_RAW_DATA, $iv);
+    return $decrypted;
+}

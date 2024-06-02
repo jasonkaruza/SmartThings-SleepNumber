@@ -31,7 +31,7 @@ For the UI Display, you will choose to "Customize through device configuration f
 # Repo installation and setup
 - Rename `oauth/example.settings.php` to `oauth/settings.php` and update all of the `Required` define'd variables
 - The SmartThings Developers account is located at https://developer.smartthings.com/workspace/projects
-- 
+- You will also need to set an environment variable using the value for the `ENCRYPTION_ENV_VARIABLE_NAME` define (e.g. `SN_ENCRYPTION_PEPPER`) as the NAME of the environment variable, and set it to some other random string for extra security when encrypting/decrypting passwords in the database. Depending on if your code is running on Windows, Linux, MacOS, you'll need to set the environment variable differently and ensure that when the code us run on the server by a web request that the variable is correctly loaded for the code to use. Also keep in mind the length of the key that is used with the selected encryption cipher. E.g. with AES 256, the max length is 32 characters, so use half for the key in the settings file, and half for your pepper environment variable.
 
 # Tips and Setup Instructions
 In the SmartThings app, enable Developer Mode under Menu->Settings gear->Push and hold About SmartThings for 5 seconds->scroll down a bit and see Developer Mode toggle->toggle it on and restart the app.

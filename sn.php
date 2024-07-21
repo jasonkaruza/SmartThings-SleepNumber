@@ -23,6 +23,7 @@ define('INTERACTION_TYPE', 'interactionType');
 define('REQUEST_ID', 'requestId');
 define('STATE_REFRESH_REQUEST', 'stateRefreshRequest');
 define('STATE_REFRESH_RESPONSE', 'stateRefreshResponse');
+define('AUTHENTICATION_TOKEN', 'token');
 
 // SmartThings switch values
 define('SWITCH_ON', 'on');
@@ -959,16 +960,38 @@ function sendBedCommands(array $commands): array
  */
 function getClient(): SleepyqPHP
 {
-    global $sleepyq;
-    // Add the username and password
-    $sargs[BED_USER] = SN_USER;
-    $sargs[BED_PASSWORD] = SN_PASS;
+    global $sleepyq, $authentication;
+
     $error = null;
     $success = true;
+    $username = $password = '';
 
     if ($sleepyq == null) {
+
+        // Single-account configuration
+        if (SINGLE_ACCOUNT_CONFIG) {
+            $username = SN_USER;
+            $password = SN_PASS;
+        }
+
+        /**
+         * Look up user by token
+         * Get user's username and password (decrypted). Use these values to authenticate against SleepNumber API
+         */
+        else {
+            $token = $authentication[AUTHENTICATION_TOKEN];
+            require_once './oauth/server.php';
+            $userId = $server->getStorage(STORAGE_NAME)->getAccessToken($token)->user_id;
+            $user = $server->getStorage(STORAGE_NAME)->getUserById($userId);
+            if ($user) {
+                $username = $user->username;
+                $password = decryptData($user->password);
+            } else {
+                logtext("There was a problem looking up user by token: $token");
+            }
+        }
         try {
-            $sleepyq = new SleepyqPHP(SN_USER, SN_PASS);
+            $sleepyq = new SleepyqPHP($username, $password);
             $sleepyq->login();
         } catch (Exception $v) {
             $error = $v;

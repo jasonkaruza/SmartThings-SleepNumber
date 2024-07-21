@@ -32,9 +32,15 @@ define('ST_CLIENT_SECRET', "<update_this>"); // Required: App Credentials Client
 // Device info https://smartthings.developer.samsung.com/workspace/projects/CPT-PARTNER/<id>/profile
 define('DEVICE_PROFILE_ID', '<update_this>'); // AKA deviceHandlerType 
 
-// Sleepnumber Credentials
-define('SN_USER', '<update_this>'); // Required: Your SleepNumber account username
-define('SN_PASS', '<update_this>'); // Required: Your SleepNumber account password
+// Specifies if this is a single-account SmartThings integration (true), or generic for multiple people to authenticate and have their credentials stored in the DB (false)
+define('SINGLE_ACCOUNT_CONFIG', true); // Optional: Defaults to true/single-account. Set to false to enable multi-account support.
+
+// Sleepnumber Credentials (if hard-coding for a single account; otherwise if storing multiple accounts in the DB, these can be deleted/commented out)
+define('SN_USER', '<update_this>'); // Required (if SINGLE_ACCOUNT_CONFIG is true): Your SleepNumber account username
+define('SN_PASS', '<update_this>'); // Required (if SINGLE_ACCOUNT_CONFIG is true): Your SleepNumber account password
+
+// CAPTCHA Google SiteKey (from https://www.google.com/recaptcha)
+define('CAPTCHA_SITE_KEY', '6Le6VRUqAAAAAEIeDfweMaeETxTQoCJpQ0iTvNCi'); // Required: Your CAPTCHA site key if using a CAPTCHA in authorize.php
 
 // Encryption configuration
 define('ENCRYPTION_METHOD', 'AES-256-CBC'); // This shouldn't be modified, but you can change it to another valid cipher if desired https://www.php.net/manual/en/function.openssl-get-cipher-methods.php

@@ -16,18 +16,18 @@ require_once 'loader.php';
 // Instructions for the server.php and token.php files, etc. 
 // https://bshaffer.github.io/oauth2-server-php-docs/cookbook/
 $dsn = 'mysql:dbname=' . DB_NAME . ';host=localhost';
-$username = DB_USER;
-$password = DB_PASS;
+$dbUser = DB_USER;
+$dbPassword = DB_PASS;
 
 // Autoloading (composer is preferred, but for this example let's just do this)
 require_once('./oauth2-server-php/src/OAuth2/Autoloader.php');
 OAuth2\Autoloader::register();
 
 // $dsn is the Data Source Name for your database, for exmaple "mysql:dbname=my_oauth2_db;host=localhost"
-$storage = new OAuth2\Storage\Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
+$storage = new OAuth2\Storage\Pdo(array('dsn' => $dsn, 'username' => $dbUser, 'password' => $dbPassword));
 
 // Pass a storage object or array of storage objects to the OAuth2 server class
-$server = new OAuth2\Server($storage, array(
+$server = new OAuth2\Server([STORAGE_NAME => $storage], array(
     'allow_implicit' => true,
     'unset_refresh_token_after_use' => false,
     'always_issue_new_refresh_token' => false, // the refresh token grant request will have a "refresh_token" field, with a new refresh token on each request

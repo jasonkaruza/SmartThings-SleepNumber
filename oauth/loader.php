@@ -2,6 +2,9 @@
 // Load the settings
 require_once "settings.php";
 
+// The 'name' of the storage object associated with the Oauth server
+define('STORAGE_NAME', 'pdo');
+
 logrequest(); // For logging
 
 ///////////////////////// HELPERS ///////////////////////////
@@ -33,6 +36,8 @@ if (!function_exists('getallheaders')) {
 }
 
 // ENCRYPTION HELPERS //
+// From https://medium.com/@london.lingo.01/unlocking-the-power-of-php-encryption-secure-data-transmission-and-encryption-algorithms-c5ed7a2cb481
+// https://stackoverflow.com/questions/64022615/2-way-string-encryption-in-php-which-of-these-is-more-secure
 
 /**
  * Compose the key from the settings key value and optional pepper env var
@@ -46,7 +51,6 @@ function getEncryptionKey()
     }
     return $key;
 }
-
 
 /**
  * Encrypt some data. We will use this for securely storing passwords in the DB.

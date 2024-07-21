@@ -16,6 +16,8 @@ These values will need to be configured within `oauth/settings.php` in the desig
 - Authorization URI (this should be the full web-accessible path to the `oauth/authorize.php` file. e.g. https://www.yourdomain.com/st/oauth/authorize.php)
 - Token URI (this should be the full web-accessible path to the `oauth/token.php` file. e.g. https://www.yourdomain.com/st/oauth/token.php)
 - Webhook URL (choose Webhook as the hosting type, and set the value to the full web-accessible path to the `sn.php` file. e.g. https://www.yourdomain.com/st/sn.php)
+- CAPTCHA Site key (add to `oauth/settings.php`) if using a Google Recaptcha in `oauth/authorize.php`
+- SINGLE_ACCOUNT_CONFIG defaults to `true` and requires hard-coded SleepNumber credentials to be populated in the `SN_USER` and `SN_PASS` `define`s within `oauth/settings.php` for when operating in a single-account scenario (dedicated for just you). If you are setting up a server for multiple people to authenticate against, their credentials will be stored in the database (encrypted) and requires that SINGLE_ACCOUNT_CONFIG be set to `false`.
 
 For the Device Profile, you will need to create a new Profile (I chose a Heated Mattress Pad Device Type, but it doesn't really matter because there is no Smart Bed option) and capture the Device Profile ID to be added to `oauth/settings.php`. The profile should include two components:
 - main (which contains three capabilities)

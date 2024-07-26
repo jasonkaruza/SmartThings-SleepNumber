@@ -3,7 +3,7 @@
 require_once "settings.php";
 
 // The 'name' of the storage object associated with the Oauth server
-define('STORAGE_NAME', 'pdo');
+define('STORAGE_NAME', 'user_credentials');
 
 logrequest(); // For logging
 

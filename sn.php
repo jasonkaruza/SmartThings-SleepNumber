@@ -161,6 +161,7 @@ else {
             "itype:",     // Required value
             "ids::",    // Optional value
             "devices::", // Optional value
+            "token::", // Optional value
         );
         $options = getopt($shortopts, $longopts);
         if (!$options['itype']) {
@@ -175,7 +176,7 @@ else {
         ];
         $authentication = [
             "tokenType" => "Bearer",
-            "token" => "token received during oauth from partner"
+            "token" => is_null($options['token']) ? "token received during oauth from partner" : $options['token'],
         ];
         if (array_key_exists('ids', $options)) {
             $eids = explode(',', $options['ids']);
@@ -980,12 +981,14 @@ function getClient(): SleepyqPHP
          */
         else {
             $token = $authentication[AUTHENTICATION_TOKEN];
-            require_once './oauth/server.php';
-            $userId = $server->getStorage(STORAGE_NAME)->getAccessToken($token)->user_id;
-            $user = $server->getStorage(STORAGE_NAME)->getUserById($userId);
+            require_once __DIR__ . '/oauth/server.php';
+            $at = $server->getStorage(STORAGE_NAME)->getAccessToken($token);
+            $userId = $at['user_id'];
+            $user = $server->getStorage(STORAGE_NAME)->getUser($userId);
+
             if ($user) {
-                $username = $user->username;
-                $password = decryptData($user->password);
+                $username = $userId;
+                $password = decryptData($user['password']);
             } else {
                 logtext("There was a problem looking up user by token: $token");
             }

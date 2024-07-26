@@ -1,11 +1,14 @@
 <?php
 // include our OAuth2 Server object (and loader)
+// TODO: DELETE THIS LINE http://localhost/st/oauth/authorize.php?client_id=sl33pnUmBer1nt3Gr8ti0n&redirect_uri=https://c2c-us.smartthings.com/oauth/callback&response_type=code&state=eyJhbGciOiJIUzM4NCJ9.MjE5MjI2NjItYmI1MC00ZWNhLThmMGItNjY0YTAyODk4YzNmOnZpcGVyX2I0N2E2OWMwLTYxYWEtMTFlZS1hOGViLWZmZjYyNDk4OTM3ODoxNzAxMzY2ODk5MTg4OmFmNjFlMjFmLWUyZDItNDM3YS04NDdjLTRkYzdjMGUyNjljNTplbi1VUzo6dHJ1ZQ.pVPvvUNFRe00Vzkf5skJ4zC_B6l4-3qKmBZB1J6lSy4NgYB9SJYTaDGrtDkXtiLI
 require_once __DIR__ . '/server.php';
-
 $request = OAuth2\Request::createFromGlobals();
 $response = new OAuth2\Response();
 // validate the authorize request
 if (!$server->validateAuthorizeRequest($request, $response)) {
+  logtext("Validated authorization request!");
+  logtext("Authorization request:\n" . print_r($request, true));
+  logtext("Authorization response:\n" . print_r($response, true));
   $response->send();
   die;
 }
@@ -123,7 +126,7 @@ else {
       <style type='text/css'>
         .bigbutton {
           width: 45%;
-          font-size: 7em;
+          font-size: 3em;
         }
 
         .container {
@@ -145,7 +148,9 @@ else {
         }
 
         input {
-          height: 5em;
+          height: 3em;
+          width: 45%;
+          font-size: 3em;
         }
 
         .vertical-center {
@@ -165,12 +170,21 @@ else {
           transform: translate(-50%, -50%);
         }
       </style>
-      <script src="https://www.google.com/recaptcha/api.js"></script>
-      <script>
-        function onSubmit(token) {
-          document.getElementById("auth-form").submit();
-        }
-      </script>
+      <?php
+      // If doing a CAPTCHA. When testing locally, you may need to set this value to '' in order for the form to submit.
+      if (strlen(CAPTCHA_SITE_KEY)) {
+      ?>
+        <!-- START CAPTCHA -->
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+        <script>
+          function onSubmit(token) {
+            document.getElementById("auth-form").submit();
+          }
+        </script>
+        <!-- END CAPTCHA -->
+      <?php
+      } // End if a CAPTCHA
+      ?>
     </head>
 
     <body>
@@ -179,10 +193,10 @@ else {
           <?php
           if (strlen($problem)) { ?>
             <h2><?= $problem ?></h2>
-          <?php } ?> <h1>>Enter your SleepNumber account login info</h1>
+          <?php } ?> <h1>Enter your SleepNumber account login info</h1>
           <p><input type="email" id="email" name="email" width="30" value="<?= $email ?>" placeholder="Email:" /></p>
           <p><input type="password" id="password" name="password" width="30" value="<?= $password ?>" placeholder="Password:" /></p>
-          <p><input type='submit' name='action' value='Login' id="login-button" class="g-recaptcha" data-sitekey="<?= CAPTCHA_SITE_KEY ?>" data-callback='onSubmit' data-action='submit'></p>
+          <p><input type='submit' name='action' value='Login' id="login-button" class="g-recaptcha bigbutton" data-sitekey="<?= CAPTCHA_SITE_KEY ?>" data-callback='onSubmit' data-action='submit' /></p>
           <script type='text/javascript'>
             document.getElementById('email').focus();
             document.getElementById('email').select();
@@ -196,9 +210,8 @@ else {
     exit();
   }
 
-  $user = $server->getStorage(STORAGE_NAME)->getUser($username);
   // Associate token with user
-  $server->handleAuthorizeRequest($request, $response, true, $user->user_id);
+  $server->handleAuthorizeRequest($request, $response, true, $email);
 }
 /*
 if ($is_authorized) {
@@ -208,4 +221,7 @@ if ($is_authorized) {
 }
 */
 // print the authorization code if the user has authorized your client
+logtext("Handled authorization request");
+logtext("Authorization request:\n" . print_r($request, true));
+logtext("Authorization response:\n" . print_r($response, true));
 $response->send();

@@ -1,6 +1,5 @@
 <?php
 // include our OAuth2 Server object (and loader)
-// TODO: DELETE THIS LINE http://localhost/st/oauth/authorize.php?client_id=sl33pnUmBer1nt3Gr8ti0n&redirect_uri=https://c2c-us.smartthings.com/oauth/callback&response_type=code&state=eyJhbGciOiJIUzM4NCJ9.MjE5MjI2NjItYmI1MC00ZWNhLThmMGItNjY0YTAyODk4YzNmOnZpcGVyX2I0N2E2OWMwLTYxYWEtMTFlZS1hOGViLWZmZjYyNDk4OTM3ODoxNzAxMzY2ODk5MTg4OmFmNjFlMjFmLWUyZDItNDM3YS04NDdjLTRkYzdjMGUyNjljNTplbi1VUzo6dHJ1ZQ.pVPvvUNFRe00Vzkf5skJ4zC_B6l4-3qKmBZB1J6lSy4NgYB9SJYTaDGrtDkXtiLI
 require_once __DIR__ . '/server.php';
 $request = OAuth2\Request::createFromGlobals();
 $response = new OAuth2\Response();
@@ -213,13 +212,7 @@ else {
   // Associate token with user
   $server->handleAuthorizeRequest($request, $response, true, $email);
 }
-/*
-if ($is_authorized) {
-  // this is only here so that you get to see your code in the cURL request. Otherwise, we'd redirect back to the client
-  $code = substr($response->getHttpHeader('Location'), strpos($response->getHttpHeader('Location'), 'code=')+5, 40);
-  exit("SUCCESS! Authorization Code: $code");
-}
-*/
+
 // print the authorization code if the user has authorized your client
 logtext("Handled authorization request");
 logtext("Authorization request:\n" . print_r($request, true));

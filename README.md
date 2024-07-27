@@ -33,6 +33,7 @@ For the Device Profile, you will need to create a new Profile (I chose a Heated 
 For the UI Display, you will choose to "Customize through device configuration file" and upload the `deviceConfigST2_1367c833-8aa0-487b-81c5-cf05302108fb.json` file.
 
 # Repo installation and setup
+- Clone this repo and the submodules `git clone --recurse-submodules https://github.com/jasonkaruza/SmartThingsSleepNumber.git`
 - Initialize the [oauth2-server-php](https://github.com/jasonkaruza/oauth2-server-php) database by creating [all of the needed tables](https://bshaffer.github.io/oauth2-server-php-docs/cookbook/) and a user that will be able to connect to it from PHP.
   - CREATE TABLE `oauth_access_tokens` (
   `access_token` varchar(40) COLLATE utf8_unicode_ci NOT NULL,

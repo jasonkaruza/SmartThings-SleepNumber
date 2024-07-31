@@ -2,4 +2,4 @@ oauth/settings.php
 .vscode
 .git
 cookie/
-requestlogs.txt
+requestlogs/

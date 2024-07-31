@@ -31,6 +31,9 @@ function logtext($text, $newlines = true)
         SN_CLIENT_ID,
         SN_CLIENT_SECRET
     ];
+    if (strlen(ENCRYPTION_PEPPER)) {
+        $otherFields[] = ENCRYPTION_PEPPER;
+    }
     foreach ($otherFields as $field) {
         $text = str_replace($field, "***", $text);
     }

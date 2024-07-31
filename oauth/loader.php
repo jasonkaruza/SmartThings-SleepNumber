@@ -35,6 +35,10 @@ function logtext($text, $newlines = true)
         $text = str_replace($field, "***", $text);
     }
 
+    // If directory doesn't exist, create it
+    if (!is_dir(LOG_DIR)) {
+        mkdir(LOG_DIR);
+    }
     file_put_contents(LOG_PATH, $text . $separator, FILE_APPEND);
 }
 

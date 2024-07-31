@@ -9,8 +9,8 @@ error_reporting(E_ALL); // Optional: https://www.php.net/manual/en/function.erro
 
 // Logging (UPDATE)
 date_default_timezone_set('America/Los_Angeles'); // Optional: https://www.php.net/manual/en/timezones.php
-define('BASE_PATH', '\\Update\\this\\path\\to\\st'); // Required: Absolute path to root directory for this project
-define('LOG_PATH', BASE_PATH . '\\requestlogs.txt'); // Optional: Log file name
+define('BASE_PATH', '/Update/this/path/to/st'); // Required: Absolute path to root directory for this project
+define('LOG_PATH', BASE_PATH . '/requestlogs.txt'); // Optional: Log file name. Consider making this hard to guess in the event that the file may be accessible via a URL
 ini_set("error_log", LOG_PATH); // Optional: Where to log errors
 
 // DB SETTINGS (SET ALL THREE)

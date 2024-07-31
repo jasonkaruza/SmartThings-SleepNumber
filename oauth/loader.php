@@ -19,6 +19,22 @@ function logrequest()
 function logtext($text, $newlines = true)
 {
     $separator = $newlines ? "\n\n" : "";
+
+    // Sanitize sensitive fields from logs
+    $sanitizeFields = [
+        'password',
+    ];
+    foreach ($sanitizeFields as $field) {
+        $text = preg_replace("/\[$field\] => .+?\n/", "[$field] => ***\n", $text);
+    }
+    $otherFields = [
+        SN_CLIENT_ID,
+        SN_CLIENT_SECRET
+    ];
+    foreach ($otherFields as $field) {
+        $text = str_replace($field, "***", $text);
+    }
+
     file_put_contents(LOG_PATH, $text . $separator, FILE_APPEND);
 }
 

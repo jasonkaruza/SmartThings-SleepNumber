@@ -135,6 +135,12 @@ else {
           text-align: center;
         }
 
+        .error {
+          color: red;
+          text-align: center;
+          font-size: 2em;
+        }
+
         h1 {
           font-size: 5em;
           text-align: center;
@@ -148,7 +154,7 @@ else {
 
         input {
           height: 3em;
-          width: 45%;
+          width: 90%;
           font-size: 3em;
         }
 
@@ -168,6 +174,13 @@ else {
           -ms-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
         }
+
+        .g-recaptcha>div>div {
+          margin: 10px auto !important;
+          text-align: center;
+          width: auto !important;
+          height: auto !important;
+        }
       </style>
       <?php
       // If doing a CAPTCHA. When testing locally, you may need to set this value to '' in order for the form to submit.
@@ -175,27 +188,114 @@ else {
       ?>
         <!-- START CAPTCHA -->
         <script src="https://www.google.com/recaptcha/api.js"></script>
-        <script>
-          function onSubmit(token) {
-            document.getElementById("auth-form").submit();
-          }
-        </script>
-        <!-- END CAPTCHA -->
-      <?php
-      } // End if a CAPTCHA
+      <?php } // END CAPTCHA 
       ?>
+
+      <script type="text/javascript">
+        function toggleFormMessage(type = "error", hide = false) {
+          document.getElementById(`form-${type}`).style.display = hide ?
+            "none" :
+            "inherit";
+        }
+
+        function onSuccess() {
+          toggleFormMessage("error", true);
+        }
+
+        function onError() {
+          toggleFormMessage("error");
+        }
+
+        <?php
+        // If doing a CAPTCHA. When testing locally, you may need to set this value to '' in order for the form to submit.
+        if (strlen(CAPTCHA_SITE_KEY)) {
+        ?>
+          // CAPTCHA
+          let isRecaptchaValidated = false;
+
+          function toggleRecaptchaFormMessage(type = "error", hide = false) {
+            document.getElementById(`recaptcha-form-${type}`).style.display = hide ?
+              "none" :
+              "inherit";
+          }
+
+          function onRecaptchaSuccess() {
+            isRecaptchaValidated = true;
+          }
+
+          function onRecaptchaError() {
+            toggleRecaptchaFormMessage("error");
+            toggleRecaptchaFormMessage("success", true);
+          }
+
+          function onRecaptchaResponseExpiry() {
+            onRecaptchaError();
+          }
+        <?php } // END CAPTCHA 
+        ?>
+
+        function formSubmit() {
+          if (document.getElementById('email').value == "" || document.getElementById('password').value == "") {
+            onError();
+            return false;
+          } else {
+            onSuccess();
+          }
+
+          <?php
+          // If doing a CAPTCHA. When testing locally, you may need to set this value to '' in order for the form to submit.
+          if (strlen(CAPTCHA_SITE_KEY)) {
+          ?>
+            // captcha failure
+            if (!isRecaptchaValidated) {
+              toggleRecaptchaFormMessage("error");
+              toggleRecaptchaFormMessage("success", true);
+              return false;
+            }
+
+            // captcha success
+            toggleRecaptchaFormMessage("error", true);
+            toggleRecaptchaFormMessage("success");
+          <?php } // END CAPTCHA 
+          ?>
+          document.getElementById('auth-form').submit();
+          return true;
+        }
+      </script>
     </head>
 
     <body>
       <div class="container">
-        <form method="post" class="center" style="width:100%" id="auth-form">
+        <form method="post" class="center" style="width:100%" id="auth-form" onsubmit="return formSubmit();">
           <?php
           if (strlen($problem)) { ?>
             <h2><?= $problem ?></h2>
           <?php } ?> <h1>Enter your SleepNumber account login info</h1>
           <p><input type="email" id="email" name="email" width="30" value="<?= $email ?>" placeholder="Email:" /></p>
           <p><input type="password" id="password" name="password" width="30" value="<?= $password ?>" placeholder="Password:" /></p>
-          <p><input type='submit' name='action' value='Login' id="login-button" class="g-recaptcha bigbutton" data-sitekey="<?= CAPTCHA_SITE_KEY ?>" data-callback='onSubmit' data-action='submit' /></p>
+          <!-- Credentials Error -->
+          <div id="form-error" style="display: none" class="error">
+            Please enter the email and password for your SleepNumber account.
+          </div>
+
+          <?php
+          // If doing a CAPTCHA. When testing locally, you may need to set this value to '' in order for the form to submit.
+          if (strlen(CAPTCHA_SITE_KEY)) {
+          ?>
+            <!-- Recaptcha -->
+            <div align="center" class="g-recaptcha" data-sitekey="<?= CAPTCHA_SITE_KEY ?>" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaResponseExpiry" data-error-callback="onRecaptchaError"></div>
+
+            <!-- Recaptcha Error -->
+            <div id="recaptcha-form-error" style="display: none" class="error">
+              Please fill the recaptcha checkbox.
+            </div>
+
+            <!-- Recaptcha Success -->
+            <div id="recaptcha-form-success" style="display: none" class="bg-green-200 rounded py-1 px-2 text-sm sm:text-md">
+            </div>
+          <?php } // END CAPTCHA 
+          ?>
+          <p><input type='submit' name='action' value='Login' id="login-button" class="bigbutton" /></p>
           <script type='text/javascript'>
             document.getElementById('email').focus();
             document.getElementById('email').select();

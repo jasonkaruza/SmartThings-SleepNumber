@@ -12,6 +12,12 @@
 // Load the settings
 require_once 'loader.php';
 
+// Temporary hack to fix Samsung sending "&scope=null" in authorization URL
+if (isset($_GET['scope']) && $_GET['scope'] == "null") {
+    unset($_GET['scope']);
+    unset($_REQUEST['scope']);
+}
+
 // Dev testing
 if ((php_sapi_name() == 'cgi-fcgi' || php_sapi_name() == 'cli') && (str_contains($_SERVER['PHP_SELF'], 'oauth/'))) {
     $shortopts = '';

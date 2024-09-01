@@ -1,0 +1,6 @@
+[submodule "SleepyqPHP"]
+	path = SleepyqPHP
+	url = https://github.com/jasonkaruza/SleepyqPHP.git
+[submodule "oauth/oauth2-server-php"]
+	path = oauth/oauth2-server-php
+	url = https://github.com/jasonkaruza/oauth2-server-php.git

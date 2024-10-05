@@ -646,6 +646,10 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [])
         foreach ($bed['sides'] as $side_name => $side) {
             // If one of the IDs sought, add it to the response
             if (array_key_exists($id, $idsAndSides) && array_key_exists($side_name, $idsAndSides[$id])) {
+                // If no foundation, default preset to null
+                if (!array_key_exists('preset', $side)) {
+                    $side['preset'] = null;
+                }
                 $output[DEVICE_STATE][] = [
                     EXTERNAL_DEVICE_ID => $id . DEVICE_ID_DELIM . $side_name,
                     "deviceCookie" => [],

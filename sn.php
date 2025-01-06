@@ -7,7 +7,17 @@ $headers = getallheaders();
 $authentication = $requestId = null;
 
 // Accessors within response payloads
+define('ACCESS_TOKEN_REQUEST', 'accessTokenRequest');
+define('ACCESSTOKEN', 'accessToken');
 define('AUTHENTICATION', 'authentication');
+define('AUTHORIZATION_CODE', 'authorization_code');
+define('AUTHENTICATION_TOKEN', 'token');
+define('CALLBACK_ACCESS', 'callback_access');
+define('CALLBACK_AUTHENTICATION', 'callbackAuthentication');
+define('CALLBACK_URLS', 'callbackUrls');
+define('CLIENT_ID', 'clientId');
+define('CLIENT_SECRET', 'clientSecret');
+define('CODE', 'code');
 define('COMMAND_REQUEST', 'commandRequest');
 define('COMMAND_RESPONSE', 'commandResponse');
 define('DEVICES', 'devices');
@@ -16,14 +26,16 @@ define('DISCOVERY_REQUEST', 'discoveryRequest');
 define('DISCOVERY_RESPONSE', 'discoveryResponse');
 define('EXTERNAL_DEVICE_ID', 'externalDeviceId');
 define('GRANT_CALLBACK_ACCESS', 'grantCallbackAccess');
+define('GRANT_TYPE', 'grantType');
 define('HEADERS', 'headers');
 define('INTEGRATION_DELETED', 'integrationDeleted');
 define('INTERACTION_RESULT', 'interactionResult');
 define('INTERACTION_TYPE', 'interactionType');
+define('OAUTH_TOKEN', 'oauthToken');
 define('REQUEST_ID', 'requestId');
+define('STATE_CALLBACK', 'stateCallback');
 define('STATE_REFRESH_REQUEST', 'stateRefreshRequest');
 define('STATE_REFRESH_RESPONSE', 'stateRefreshResponse');
-define('AUTHENTICATION_TOKEN', 'token');
 
 // SmartThings switch values
 define('SWITCH_ON', 'on');
@@ -110,6 +122,25 @@ foreach ($FOOTWARM_TEMPS as $temp) {
 // Others
 define('DEVICE_ID_DELIM', ':');
 
+// SmartThings Callback Tables and fields
+define('ST_CALLBACK_CODE', 'st_callback_code');
+define('ST_CALLBACK_TOKEN', 'st_callback_token');
+define('ACCESS_TOKEN', 'access_token');
+define('EXPIRES_AT', 'expires_at');
+define('EXPIRES_IN', 'expires_in');
+define('EXPIRESIN', 'expiresIn');
+define('ID', 'id');
+define('REFRESH_TOKEN', 'refresh_token');
+define('REFRESHTOKEN', 'refreshToken');
+define('SLEEP_END_TIME', 'sleep_end_time');
+define('SLEEP_START_TIME', 'sleep_start_time');
+define('STATE_URI', 'state_uri');
+define('ST_CALLBACK_CODE_ID', 'st_callback_code_id');
+define('TIMEZONE', 'timezone');
+define('TOKEN_URI', 'token_uri');
+define('USER_ID', 'user_id');
+
+// Various variables we will need to set
 $object = null;
 $devices = null;
 $sleepyq = null;
@@ -153,7 +184,7 @@ if (stripos($content_type, 'application/json') !== false) {
 
 // else not JSON
 else {
-    // If calling via CLI, it is for testing purposes
+    // If calling via CLI, it is for testing or cron purposes
     /**
      * Test command samples:
      * - php sn.php --itype=discoveryRequest --token=XYZ
@@ -162,6 +193,7 @@ else {
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"main","capability":"st.switch","command":"on","arguments":[]}]}]'
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Low - 30 min"]}]}]'
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Off"]}]}]'
+     * * - php sn.php --token=<token> --itype=grantCallbackAccess --callbackAuthentication='{"grantType":"authorization_code","scope":"callback-access","code":"<longstring>","clientId":"<something>"}' --callbackUrls='{"oauthToken":"https:\/\/c2c-us.smartthings.com\/oauth\/token","stateCallback":"https:\/\/c2c-us.smartthings.com\/device\/events"}'
      */
     if (php_sapi_name() == 'cgi-fcgi' || php_sapi_name() == 'cli') {
         $shortopts = '';
@@ -170,17 +202,26 @@ else {
             "ids::",    // Optional value
             "devices::", // Optional value
             "token::", // Optional value
+            "callbackAuthentication::",    // Optional value
+            "callbackUrls::",    // Optional value
+            "iscron::", // Optional value
         );
         $options = getopt($shortopts, $longopts);
         if (!$options['itype']) {
             exit;
         }
 
+        // If cron, we want to facilitate a callback to SmartThings with state
+        // updates https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
+        if (array_key_exists('iscron', $options)) {
+        }
+
+
         $headers = [
             "schema" => "st-schema",
             "version" => "1.0",
             "interactionType" => $options['itype'],
-            "requestId" => "abc-123-456"
+            "requestId" => uuidv4(),
         ];
         $authentication = [
             "tokenType" => "Bearer",
@@ -195,8 +236,14 @@ else {
                 ];
             }
         }
-        if (array_key_exists('devices', $options)) {
-            $devices = json_decode($options['devices'], true);
+        if (array_key_exists(DEVICES, $options)) {
+            $devices = json_decode($options[DEVICES], true);
+        }
+        if (array_key_exists(CALLBACK_AUTHENTICATION, $options)) {
+            $object[CALLBACK_AUTHENTICATION] = json_decode($options[CALLBACK_AUTHENTICATION], true);
+        }
+        if (array_key_exists(CALLBACK_URLS, $options)) {
+            $object[CALLBACK_URLS] = json_decode($options[CALLBACK_URLS], true);
         }
     }
     // Else, exit
@@ -235,7 +282,7 @@ if (array_key_exists(INTERACTION_TYPE, $headers)) {
             $response = discoveryRequest($requestId, $authentication);
             break;
         case GRANT_CALLBACK_ACCESS:
-            $response = grantCallbackAccess($requestId, $authentication);
+            $response = grantCallbackAccess($authentication, $object);
             break;
         case INTEGRATION_DELETED:
             $response = integrationDeleted($requestId, $authentication);
@@ -355,8 +402,26 @@ function discoveryRequest(string $reqId = null, array $auth)
  * Use an HTTPS POST call to the above oauthToken URL to request a callback access token.
  * A third party uses the callback access token to call into the SmartThings Cloud.
  */
-function grantCallbackAccess($reqId, $auth)
+function grantCallbackAccess(array $auth, array $requestObject)
 {
+    if (array_key_exists(CALLBACK_AUTHENTICATION, $requestObject)) {
+        $callbackAuth = $requestObject[CALLBACK_AUTHENTICATION];
+        if (array_key_exists(GRANT_TYPE, $callbackAuth) && $callbackAuth[GRANT_TYPE] == AUTHORIZATION_CODE && array_key_exists(CALLBACK_URLS, $requestObject)) {
+            $code = $callbackAuth[CODE]; // Callback code to be stored
+            $oauthTokenUri = $requestObject[CALLBACK_URLS][OAUTH_TOKEN];
+            $stateCallbackUri = $requestObject[CALLBACK_URLS][STATE_CALLBACK];
+            $token = $auth[AUTHENTICATION_TOKEN];
+            require_once __DIR__ . '/oauth/server.php';
+            $at = $server->getStorage(STORAGE_NAME)->getAccessToken($token);
+            $userId = $at['user_id'];
+
+            // Insert the code
+            $codeId = insertCallbackCode($token, $code, $userId, $oauthTokenUri, $stateCallbackUri);
+
+            // Use the code to request a callback access token
+            $response = makeAccessTokenRequest($oauthTokenUri, $codeId, $code);
+        }
+    }
     return [];
 } // End function grantCallbackAccess
 
@@ -1031,4 +1096,288 @@ function httpError(int $code = 400, string $content = null)
     }
     logtext("HTTP ERROR $code: $content");
     exit;
+}
+
+/**
+ * Generate a UUIDv4 string
+ * @return string
+ */
+function uuidv4(): string
+{
+    $data = random_bytes(16);
+
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // set version to 0100
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // set bits 6-7 to 10
+
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+/**
+ * Get an access token to make state update requests to the SmartThings API. If
+ * there is a valid/unexpired access token in the database, use that. If not,
+ * get a new one from the SmartThings API.
+ * @param string $userId
+ * @return string|null
+ */
+function getAccessToken(string $userId): string|null
+{
+    $accessCode = null;
+    // Start by getting the latest code row for the user from the database
+    $codeRow = getCodeByUserId($userId);
+    if ($codeRow) {
+        $codeId = $codeRow[ID];
+        $tokenUri = $codeRow[TOKEN_URI];
+        // We got a code, so now look up the newest token for that code
+        $tokenRow = getTokenByCodeId($codeId);
+        if ($tokenRow) {
+            // We got a token row
+            $expiresAt = new DateTime($tokenRow[EXPIRES_AT]);
+            $now = new DateTime();
+            if ($now >= $expiresAt) {
+                // The latest token has expired, so we need to get a new one using the refresh token
+                $refreshToken = $tokenRow[REFRESH_TOKEN];
+                $accessCode = makeAccessTokenRequest($tokenUri, $codeId, $refreshToken);
+            } else {
+                // The latest token is still valid, so just return it
+                $accessCode = $tokenRow[ACCESS_TOKEN];
+            }
+        }
+    }
+
+    return $accessCode;
+}
+
+/**
+ * Get an access token and refresh token for making calls to the SmartThings API
+ * The access token expires in 24 hours.
+ * The refresh token is static and will not change until a new grantCallbackAccess interaction is sent from SmartThings. This happens when either:
+ * A user needs to re-login to the linked account.
+ * Your integration requests a refresh of the callbackTokens by setting requestGrantCallbackAccess: true in a discoveryResponse.
+ * requestGrantCallbackAccess should only be used if a refresh of callbackToken fails using the static refresh token, and the failure is not due to an internal server error or a timeout.
+ * If the access token has expired, use the provided refreshToken to request a new access token at the oauthToken URL used previously.
+ * @param string $tokenUri The URL to call to get the token
+ * @param int $codeId The ID of the code in the ST_CALLBACK_CODE table associated with this request
+ * @param string $code The code to use for making the request. This could be a code from ST_CALLBACK_CODE, or a refresh token provided previously. If not provided, the code will be looked up by the $codeId from the ST_CALLBACK_CODE table
+ * @return string|null The access token retrieved or null on failure
+ */
+function makeAccessTokenRequest(string $tokenUri, int $codeId, string $code = null): string|null
+{
+    /** 
+     * https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
+     * Example request:
+     * {
+     * "headers": {
+     *     "schema": "st-schema",
+     *     "version": "1.0",
+     *     "interactionType": "accessTokenRequest",
+     *     "requestId": "abc-123-456"
+     * },
+     * "callbackAuthentication": {
+     *     "grantType": "authorization_code",
+     *     "code": "xxxxxxxxxxx",
+     *     "clientId": "client id given to partner in dev-workspace during app creation",
+     *     "clientSecret": "client secret given to partner in dev-workspace during app creation"
+     * }
+     * }
+     */
+    // If the code wasn't provided, look it up in the database
+    if (!$code) {
+        $code = getCodeById($codeId, CODE);
+        if (!$code) {
+            httpError(500, "There was a problem looking up the code by ID: $codeId");
+        }
+    }
+    $data = [
+        HEADERS => [
+            'schema' => 'st-schema',
+            'version' => '1.0',
+            INTERACTION_TYPE => ACCESS_TOKEN_REQUEST,
+            REQUEST_ID => uuidv4(),
+        ],
+        CALLBACK_AUTHENTICATION => [
+            GRANT_TYPE => AUTHORIZATION_CODE,
+            CODE => $code,
+            CLIENT_ID => ST_CLIENT_ID,
+            CLIENT_SECRET => ST_CLIENT_SECRET,
+        ]
+    ];
+    $response = makeRequest($tokenUri, $data, [], 'POST');
+    if ($response) {
+        /**
+         * Example response:
+         * {
+         *     "headers": {
+         *         "schema": "st-schema",
+         *         "version": "1.0",
+         *         "interactionType": "accessTokenResponse",
+         *         "requestId": "abc-123-456"
+         *     },
+         *     "callbackAuthentication": {
+         *         "tokenType": "Bearer",
+         *         "accessToken": "xxxxxxxxxxx",
+         *         "refreshToken": "yyyyyyyyyyy",
+         *         "expiresIn": 86400
+         *     }
+         * }
+         */
+        if (array_key_exists(HEADERS, $response) && array_key_exists(CALLBACK_AUTHENTICATION, $response)) {
+            $auth = $response[CALLBACK_AUTHENTICATION];
+            if (array_key_exists(ACCESSTOKEN, $auth) && array_key_exists(REFRESHTOKEN, $auth)) {
+                // Insert the callback token data into the database
+                $lastId = insertCallbackToken($auth[ACCESSTOKEN], $auth[REFRESHTOKEN], $codeId, $auth[EXPIRESIN]);
+                logtext("Inserted new callback token with ID: $lastId");
+                return $auth[ACCESSTOKEN];
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * 
+ * Make a call to the SmartThings API
+ * @param mixed $url
+ * @param mixed $data
+ * @param mixed $headers
+ * @param mixed $method
+ * @return mixed
+ */
+function makeRequest($url, $data = null, $headers = [], $method = 'GET'): mixed
+{
+    logtext("Making $method request to $url with data:\n" . json_encode($data) . "\nheaders:\n" . json_encode($headers) . "\nmethod: $method");
+    if ($method == 'GET' && $data) {
+        $url .= '?' . http_build_query($data);
+    }
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+
+    if ($headers) {
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    }
+    if ($method == 'POST' && $data) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    }
+
+    $response = curl_exec($ch);
+    logtext("Request response:\n" . json_encode($response));
+    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($statusCode >= 400) {
+        httpError($statusCode, json_encode($response));
+    }
+
+    return json_decode($response, true);
+}
+
+/**
+ * Get the Database connection. This should be called at the top of any function
+ * that relies on using the database.
+ * @return Database object
+ */
+function getDb()
+{
+    require_once "./db.php";
+    global $DB;
+    if (!$DB) {
+        $DB = new Database(DB_HOST, DB_NAME, DB_USER, DB_PASS);
+    }
+    return $DB;
+}
+
+/**
+ * Inserts a new callback code into the database
+ * @param string $accessToken The token used in the response to this server
+ * @param string $code The code provided for calls to SmartThings
+ * @param string $userId The ID associated with the access token
+ * @param string $tokenUri The URL to use to request a callback access token
+ * @param string $stateUri The URL to send state updates to
+ * @return bool|int
+ */
+function insertCallbackCode(string $accessToken, string $code, string $userId, string $tokenUri, string $stateUri): bool|int
+{
+    $db = getDb();
+    $data = [
+        ACCESS_TOKEN => $accessToken,
+        CODE => $code,
+        USER_ID => $userId,
+        TOKEN_URI => $tokenUri,
+        STATE_URI => $stateUri,
+    ];
+    $lastId = $db->insert(ST_CALLBACK_CODE, $data);
+    // If the insert failed, throw an error and exit
+    if ($lastId === false) {
+        httpError(500, "There was a problem saving a new callback code to the database. Contents: " . json_encode($data));
+    } else {
+        logtext("Inserted new callback code with ID: $lastId");
+    }
+
+    return $lastId;
+}
+
+/**
+ * Inserts a new callback token into the database
+ * @param string $accessToken The token used in the response to this server
+ * @param string $refreshToken The token used to refresh the access token
+ * @param string $codeId The ID of the ST_CALLBACK_CODE row associated with the request to SmartThings
+ * @param int $expiresIn The number of seconds the token is valid for
+ * @return bool|int
+ */
+function insertCallbackToken(string $accessToken, string $refreshToken, int $codeId, int $expiresIn): bool|int
+{
+    $db = getDb();
+    $data = [
+        ACCESS_TOKEN => $accessToken,
+        REFRESH_TOKEN => $refreshToken,
+        ST_CALLBACK_CODE_ID => $codeId,
+        EXPIRES_IN => $expiresIn,
+        EXPIRES_AT => date('Y-m-d H:i:s', time() + $expiresIn),
+    ];
+    $lastId = $db->insert(ST_CALLBACK_TOKEN, $data);
+    // If the insert failed, throw an error and exit
+    if ($lastId === false) {
+        httpError(500, "There was a problem saving a new callback token to the database. Contents: " . json_encode($data));
+    } else {
+        logtext("Inserted new callback token with ID: $lastId");
+    }
+
+    return $lastId;
+}
+
+/**
+ * Get a ST_CALLBACK_CODE row or code by ID
+ * @param int $codeId The ID of the code row to retrieve
+ * @param string $specificField Defaults to null
+ * @return mixed Either associative array for the row or a single field value
+ */
+function getCodeById(int $codeId, string $specificField = null)
+{
+    $db = getDb();
+    return $db->getRowOrFieldById(ST_CALLBACK_CODE, $codeId, $specificField);
+}
+
+/**
+ * Get a ST_CALLBACK_CODE row or code by user ID
+ * @param string $userId The ID of the user to retrieve
+ * @param string $specificField Defaults to null
+ * @return mixed Either associative array for the row or a single field value
+ */
+function getCodeByUserId(string $userId, string $specificField = null)
+{
+    $db = getDb();
+    return $db->getRowOrFieldByField(ST_CALLBACK_CODE, USER_ID, $userId, $specificField);
+}
+
+
+/**
+ * Get a ST_CALLBACK_TOKEN row or field by code ID
+ * @param int $codeId The ID of the code row to retrieve
+ * @param string $specificField Defaults to null
+ * @return mixed Either associative array for the row or a single field value
+ */
+function getTokenByCodeId(int $codeId, string $specificField = null): mixed
+{
+    $db = getDb();
+    return $db->getRowOrFieldByField(ST_CALLBACK_TOKEN, ST_CALLBACK_CODE_ID, $codeId, $specificField);
 }

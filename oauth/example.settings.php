@@ -14,7 +14,8 @@ define('LOG_DIR', BASE_PATH . '/requestlogs'); // Required: This should match wh
 define('LOG_PATH', LOG_DIR . '/requestlogs.txt'); // Optional: Log file name. Consider making this hard to guess in the event that the file may be accessible via a URL
 ini_set("error_log", LOG_PATH); // Optional: Where to log errors
 
-// DB SETTINGS (SET ALL THREE)
+// DB SETTINGS (SET ALL)
+define('DB_HOST', 'localhost'); // Required: The host of the database. Update if necessary
 define('DB_NAME', '<update_this>'); // Required: The name of the database storing Oauth data
 define('DB_USER', '<update_this>'); // Required: The username for the database
 define('DB_PASS', '<update_this>'); // Required: The password for the database user

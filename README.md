@@ -95,6 +95,39 @@ CREATE TABLE `oauth_users` (
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
+
+CREATE TABLE `st_callback_code` (
+  `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `access_token` varchar(255) NOT NULL,
+  `code` varchar(255) UNIQUE NOT NULL,
+  `user_id` varchar(255) NOT NULL,
+  `token_uri` varchar(2000) NOT NULL,
+  `state_uri` varchar(2000) NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX user_id_key (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT="Stores the code for callbacks from grantCallbackAccess";
+
+CREATE TABLE `st_callback_token` (
+  `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `access_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `refresh_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `st_callback_code_id` bigint NOT NULL,
+  `expires_in` int(8) NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX st_callback_code_id_key (st_callback_code_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT="Stores access tokens from ST accessTokenResponses for callbacks";
+
+CREATE TABLE `st_user_settings` (
+  `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `user_id` varchar(255) NOT NULL,
+  `timezone` varchar(255) NOT NULL,
+  `sleep_start_time` DATETIME DEFAULT NULL,
+  `sleep_end_time` DATETIME DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT NULL,
+  INDEX user_id_key (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT="Stores various user settings";
 ```
 3. Rename `oauth/example.settings.php` to `oauth/settings.php` and update all of the `Required` `define()`'d variables as indicated below...
 

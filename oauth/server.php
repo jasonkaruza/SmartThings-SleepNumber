@@ -63,7 +63,7 @@ if ((php_sapi_name() == 'cgi-fcgi' || php_sapi_name() == 'cli') && (str_contains
 // https://bshaffer.github.io/oauth2-server-php-docs/
 // Instructions for the server.php and token.php files, etc. 
 // https://bshaffer.github.io/oauth2-server-php-docs/cookbook/
-$dsn = 'mysql:dbname=' . DB_NAME . ';host=localhost';
+$dsn = 'mysql:dbname=' . DB_NAME . ';host=' . DB_HOST;
 $dbUser = DB_USER;
 $dbPassword = DB_PASS;
 

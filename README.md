@@ -1,6 +1,9 @@
 # Overview
 In the past, there was an integration that allowed for controlling a [SleepNumber bed via SmartThings](https://community.smartthings.com/t/obsolete-sleep-number-sleepiq-smartthings-integration/169038), but after the SmartThings platform migration, that integration became obsolete. This project aims to pick up where that left off.
 
+> [!NOTE]
+> This integration currently [**DOES NOT** support Fuzion generation beds](https://github.com/kbickar/asyncsleepiq/issues/12). That is in the TODO queue to add support. Feel free to read more about it and see an instance of the [updated code to support Fuzion beds](https://github.com/kbickar/asyncsleepiq/pull/14/files) if you're curious. [Here is another thread, too](https://github.com/home-assistant/core/issues/107343).
+
 You have two options:
 1. SIMPLEST: You can request an invite to the SmartThings integration by [direct-messaging me in the SmartThings community forum](https://community.smartthings.com/u/smrtdrmmr). This integration cannot be published officially within the SmartThings catalog because 1) I am not a corporation, and 2) I am not affiliated with SleepNumber.
 > 

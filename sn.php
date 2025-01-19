@@ -674,14 +674,14 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [])
                             "component" => "main",
                             "capability" => "st.switchLevel",
                             "attribute" => "level",
-                            "value" => extractOverride($overrides, $id, $side_name, 'number') ?: $side['sleepnumber'],
+                            "value" => extractOverride($overrides, $id, $side_name, 'number') ?: $side['sleepNumber'],
                         ],
                         // Switch to indicate if in Favorite configuration, or not
                         [
                             "component" => "main",
                             "capability" => "st.switch",
                             "attribute" => "switch",
-                            "value" => extractOverride($overrides, $id, $side_name, 'fave') ?: ((($side['preset'] == FAVORITE) && ($side['sleepnumber'] == $side['fave']))
+                            "value" => extractOverride($overrides, $id, $side_name, 'fave') ?: ((($side['preset'] == FAVORITE) && ($side['sleepNumber'] == $side['fave']))
                                 ? SWITCH_ON : SWITCH_OFF)
                         ],
                         // SmartThings presenceSensor indicating if footwarming is available or not
@@ -894,7 +894,7 @@ function getBedState($bedIds = []): array
                 if (array_key_exists($side, $bedStatus)) {
                     $sideStatus = $bedStatus[$side];
                     if ($sideStatus) {
-                        $data[$bedId]['sides'][$side]['sleepnumber'] = $sideStatus['sleepnumber'];
+                        $data[$bedId]['sides'][$side]['sleepNumber'] = $sideStatus['sleepNumber'];
                         $data[$bedId]['sides'][$side]['fave'] = $sideFaves[$side];
                         $data[$bedId]['sides'][$side]['footwarmingAvailable'] = $foundationFeatures->hasFootWarming;
                         $data[$bedId]['sides'][$side]['footwarmingMode'] = ($foundationFootwarming != null) ? mapModeToFootWarming($foundationFootwarming->sides[$side]) : FOOTWARM_TEMP_OFF; // Array with 'temp' and 'time' keys

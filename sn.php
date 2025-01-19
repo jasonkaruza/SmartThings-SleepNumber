@@ -36,6 +36,8 @@ define('REQUEST_ID', 'requestId');
 define('STATE_CALLBACK', 'stateCallback');
 define('STATE_REFRESH_REQUEST', 'stateRefreshRequest');
 define('STATE_REFRESH_RESPONSE', 'stateRefreshResponse');
+define('TOKEN', 'token');
+define('TOKEN_TYPE', 'tokenType');
 
 // SmartThings switch values
 define('SWITCH_ON', 'on');
@@ -193,7 +195,8 @@ else {
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"main","capability":"st.switch","command":"on","arguments":[]}]}]'
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Low - 30 min"]}]}]'
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Off"]}]}]'
-     * * - php sn.php --token=<token> --itype=grantCallbackAccess --callbackAuthentication='{"grantType":"authorization_code","scope":"callback-access","code":"<longstring>","clientId":"<something>"}' --callbackUrls='{"oauthToken":"https:\/\/c2c-us.smartthings.com\/oauth\/token","stateCallback":"https:\/\/c2c-us.smartthings.com\/device\/events"}'
+     * - php sn.php --token=<token> --itype=grantCallbackAccess --callbackAuthentication='{"grantType":"authorization_code","scope":"callback-access","code":"<longstring>","clientId":"<something>"}' --callbackUrls='{"oauthToken":"https:\/\/c2c-us.smartthings.com\/oauth\/token","stateCallback":"https:\/\/c2c-us.smartthings.com\/device\/events"}'
+     * - php sn.php --itype=stateCallback --iscron=true
      */
     if (php_sapi_name() == 'cgi-fcgi' || php_sapi_name() == 'cli') {
         $shortopts = '';
@@ -210,10 +213,20 @@ else {
         if (!$options['itype']) {
             exit;
         }
+        $iType = trim($options['itype']);
 
-        // If cron, we want to facilitate a callback to SmartThings with state
-        // updates https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
+        // If a cron job
         if (array_key_exists('iscron', $options)) {
+            logtext("###CRON JOB STARTED AT " . date('Y-m-d H:i:s') . " FOR ITYPE $iType");
+            switch ($iType) {
+                    // We want to facilitate a callback to SmartThings with state
+                    // updates https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
+                case STATE_CALLBACK:
+                    performStateCallbacks();
+                    break;
+            }
+            logtext("###CRON JOB ENDED AT " . date('Y-m-d H:i:s') . " FOR ITYPE $iType");
+            exit;
         }
 
 
@@ -224,8 +237,8 @@ else {
             "requestId" => uuidv4(),
         ];
         $authentication = [
-            "tokenType" => "Bearer",
-            "token" => is_null($options['token']) ? "token received during oauth from partner" : $options['token'],
+            TOKEN_TYPE => "Bearer",
+            TOKEN => is_null($options[TOKEN]) ? "token received during oauth from partner" : $options[TOKEN],
         ];
         if (array_key_exists('ids', $options)) {
             $eids = explode(',', $options['ids']);
@@ -1116,17 +1129,17 @@ function uuidv4(): string
  * Get an access token to make state update requests to the SmartThings API. If
  * there is a valid/unexpired access token in the database, use that. If not,
  * get a new one from the SmartThings API.
- * @param string $userId
+ * @param array $codeRow
  * @return string|null
  */
-function getAccessToken(string $userId): string|null
+function getAccessTokenByCode(array $codeRow): string|null
 {
     $accessCode = null;
-    // Start by getting the latest code row for the user from the database
-    $codeRow = getCodeByUserId($userId);
+    $userId = $codeRow[USER_ID];
     if ($codeRow) {
         $codeId = $codeRow[ID];
         $tokenUri = $codeRow[TOKEN_URI];
+        logtext("Found code row for userId $userId with codeId $codeId");
         // We got a code, so now look up the newest token for that code
         $tokenRow = getTokenByCodeId($codeId);
         if ($tokenRow) {
@@ -1134,14 +1147,20 @@ function getAccessToken(string $userId): string|null
             $expiresAt = new DateTime($tokenRow[EXPIRES_AT]);
             $now = new DateTime();
             if ($now >= $expiresAt) {
+                logtext("The latest token has expired: {$tokenRow[EXPIRES_AT]} >= now");
                 // The latest token has expired, so we need to get a new one using the refresh token
                 $refreshToken = $tokenRow[REFRESH_TOKEN];
                 $accessCode = makeAccessTokenRequest($tokenUri, $codeId, $refreshToken);
             } else {
+                logtext("The latest token ID {$tokenRow[ID]} is still valid");
                 // The latest token is still valid, so just return it
                 $accessCode = $tokenRow[ACCESS_TOKEN];
             }
+        } else {
+            logtext("No token row found for codeId $codeId");
         }
+    } else {
+        logtext("No code row found for userId $userId");
     }
 
     return $accessCode;
@@ -1231,6 +1250,115 @@ function makeAccessTokenRequest(string $tokenUri, int $codeId, string $code = nu
         }
     }
     return null;
+}
+
+function performStateCallbacks()
+{
+    // Get the latest codes for each user
+    $codeRows = getLatestUserCodes();
+    logtext("###Retrieved " . count($codeRows) . " codes");
+
+    // Get (or request) access tokens for each
+    foreach ($codeRows as $codeRow) {
+        $token = getAccessTokenByCode($codeRow);
+        $stateCallbackUri = $codeRow[STATE_URI];
+        if ($token) {
+            $beds = getBeds(false);
+
+            $idsAndSides = [];
+            foreach ($beds as $bed) {
+                foreach ($bed->sides as $side) {
+                    $idsAndSides[$bed->id][$side] = $side;
+                }
+            }
+            // Make stateCallback requests for each
+            makeStateCallbackRequest($token, $idsAndSides, $stateCallbackUri);
+        }
+    }
+}
+
+function makeStateCallbackRequest(string $token, array $idsAndSides, string $stateCallbackUri): mixed
+{
+    /**
+     * Example from https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#device-state-callback
+     * {
+     *     "headers": {
+     *         "schema": "st-schema",
+     *         "version": "1.0",
+     *         "interactionType": "stateCallback",
+     *         "requestId": "abc-123-456"
+     *     },
+     *     "authentication": {
+     *         "tokenType": "Bearer",
+     *         "token": "token-received from SmartThings for callbacks"
+     *     },
+     *     "deviceState": 
+     *         {
+     *             "externalDeviceId": "partner-device-id-1",
+     *             "states": [
+     *                 {
+     *                     "component": "main",
+     *                     "capability": "st.switch",
+     *                     "attribute": "switch",
+     *                     "value": "on",
+     *                     "timestamp": 1568248946010
+     *                 },
+     *                 {
+     *                     "component": "main",
+     *                     "capability": "st.switchLevel",
+     *                     "attribute": "level",
+     *                     "value": 80,
+     *                     "timestamp": 1568249946020
+     *                 }
+     *             ]
+     *         },
+     *         {
+     *             "externalDeviceId": "partner-device-id-2",
+     *             "states": [
+     *                 {
+     *                     "component": "main",
+     *                     "capability": "st.switch",
+     *                     "attribute": "switch",
+     *                     "value": "off",
+     *                     "timestamp": 1568254946010
+     *                 },
+     *                 {
+     *                     "component": "main",
+     *                     "capability": "st.switchLevel",
+     *                     "attribute": "level",
+     *                     "value": 80,
+     *                     "timestamp": 1568255946020
+     *                 },
+     *                 {
+     *                     "component": "main",
+     *                     "capability": "st.healthCheck",
+     *                     "attribute": "healthStatus",
+     *                     "value": "offline",
+     *                     "timestamp": 1568257946030
+     *                 }
+     *             ]
+     *         }
+     *     ]
+     * }
+     */
+    $request = [
+        HEADERS => [
+            'schema' => 'st-schema',
+            'version' => '1.0',
+            INTERACTION_TYPE => STATE_CALLBACK,
+            REQUEST_ID => uuidv4(),
+        ],
+        AUTHENTICATION => [
+            TOKEN_TYPE => 'Bearer',
+            TOKEN => $token,
+        ],
+    ];
+    $ids = array_keys($idsAndSides);
+    $beds = getBedState($ids);
+
+    parseBedState($beds, $request, $idsAndSides);
+    $response = makeRequest($stateCallbackUri, $request, [], 'POST');
+    return $response;
 }
 
 /**
@@ -1380,4 +1508,13 @@ function getTokenByCodeId(int $codeId, string $specificField = null): mixed
 {
     $db = getDb();
     return $db->getRowOrFieldByField(ST_CALLBACK_TOKEN, ST_CALLBACK_CODE_ID, $codeId, $specificField);
+}
+
+
+function getLatestUserCodes()
+{
+    $codes = [];
+    $db = getDb();
+    $sql = "SELECT t1.* FROM " . ST_CALLBACK_CODE . " t1 WHERE t1.id = (SELECT MAX(t2.id) FROM " . ST_CALLBACK_CODE . " t2 WHERE t2." . USER_ID . " = t1." . USER_ID . ")";
+    return $db->raw($sql);
 }

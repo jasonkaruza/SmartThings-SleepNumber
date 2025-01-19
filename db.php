@@ -225,4 +225,17 @@ class Database
     {
         return $this->pdo->rollBack();
     }
+
+    public function raw($sql)
+    {
+        try {
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute();
+
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            throw new Exception("Raw query $sql failed: " . $e->getMessage());
+        }
+    }
 }

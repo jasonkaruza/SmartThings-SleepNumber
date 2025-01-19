@@ -112,8 +112,8 @@ CREATE TABLE `st_callback_code` (
 
 CREATE TABLE `st_callback_token` (
   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `access_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `refresh_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `access_token` varchar(255) NOT NULL,
+  `refresh_token` varchar(255) NOT NULL,
   `st_callback_code_id` bigint NOT NULL,
   `expires_in` int(8) NOT NULL,
   `expires_at` DATETIME NOT NULL,

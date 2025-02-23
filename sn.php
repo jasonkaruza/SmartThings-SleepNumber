@@ -197,6 +197,7 @@ else {
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Off"]}]}]'
      * - php sn.php --token=<token> --itype=grantCallbackAccess --callbackAuthentication='{"grantType":"authorization_code","scope":"callback-access","code":"<longstring>","clientId":"<something>"}' --callbackUrls='{"oauthToken":"https:\/\/c2c-us.smartthings.com\/oauth\/token","stateCallback":"https:\/\/c2c-us.smartthings.com\/device\/events"}'
      * - php sn.php --itype=stateCallback --iscron=true
+     * - php sn.php --itype=stateCallback --iscron=true --userids=<user_id_1>,<user_id_2>
      */
     if (php_sapi_name() == 'cgi-fcgi' || php_sapi_name() == 'cli') {
         $shortopts = '';
@@ -208,6 +209,7 @@ else {
             "callbackAuthentication::",    // Optional value
             "callbackUrls::",    // Optional value
             "iscron::", // Optional value
+            "userids::", // Optional value
         );
         $options = getopt($shortopts, $longopts);
         if (!$options['itype']) {
@@ -215,17 +217,24 @@ else {
         }
         $iType = trim($options['itype']);
 
+        // If users are specified, we will only update those users
+        $userIds = null;
+        if (array_key_exists('userids', $options)) {
+            $userIds = explode(',', $options['userids']);
+        }
+
         // If a cron job
         if (array_key_exists('iscron', $options)) {
-            logtext("###CRON JOB STARTED AT " . date('Y-m-d H:i:s') . " FOR ITYPE $iType");
+            $cronStart = date('Y-m-d H:i:s');
+            logtext("###$cronStart CRON JOB STARTED FOR ITYPE $iType");
             switch ($iType) {
                     // We want to facilitate a callback to SmartThings with state
                     // updates https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
                 case STATE_CALLBACK:
-                    performStateCallbacks();
+                    performStateCallbacks($userIds);
                     break;
             }
-            logtext("###CRON JOB ENDED AT " . date('Y-m-d H:i:s') . " FOR ITYPE $iType");
+            logtext("###$cronStart CRON JOB ENDED AT " . date('Y-m-d H:i:s') . " FOR ITYPE $iType");
             exit;
         }
 
@@ -926,9 +935,9 @@ function toLc(array $arrayOfStrings, bool $stripSpaces = true): array
 /**
  * Get Beds
  */
-function getBeds($withFoundationFeatures = false): array
+function getBeds($withFoundationFeatures = false, string $userId = null): array
 {
-    $client = getClient();
+    $client = getClient($userId);
     $beds = $client->beds($withFoundationFeatures);
     foreach ($beds as $k => $bed) {
         $bed->id = $bed->bedId;
@@ -1048,14 +1057,14 @@ function sendBedCommands(array $commands): array
 
 /**
  * Get the SleepyqPHP client
+ * @param string $userId Optional. If provided, user this user ID for lookup
  * @return SleepyqPHP object
  */
-function getClient(): SleepyqPHP
+function getClient(string $userId = null): SleepyqPHP
 {
     global $sleepyq, $authentication;
 
     $error = null;
-    $success = true;
     $username = $password = '';
 
     if ($sleepyq == null) {
@@ -1067,14 +1076,17 @@ function getClient(): SleepyqPHP
         }
 
         /**
-         * Look up user by token
+         * Look up user by token or user the provided userId
          * Get user's username and password (decrypted). Use these values to authenticate against SleepNumber API
          */
         else {
-            $token = $authentication[AUTHENTICATION_TOKEN];
+            // No user ID provided, so look up by token
             require_once __DIR__ . '/oauth/server.php';
-            $at = $server->getStorage(STORAGE_NAME)->getAccessToken($token);
-            $userId = $at['user_id'];
+            if (!$userId) {
+                $token = $authentication[AUTHENTICATION_TOKEN];
+                $at = $server->getStorage(STORAGE_NAME)->getAccessToken($token);
+                $userId = $at['user_id'];
+            }
             $user = $server->getStorage(STORAGE_NAME)->getUser($userId);
 
             if ($user) {
@@ -1089,7 +1101,7 @@ function getClient(): SleepyqPHP
             $sleepyq->login();
         } catch (Exception $v) {
             $error = $v;
-            $success = false;
+            logtext("There was a problem logging into SleepNumber: $error");
         }
     }
     return $sleepyq;
@@ -1252,10 +1264,10 @@ function makeAccessTokenRequest(string $tokenUri, int $codeId, string $code = nu
     return null;
 }
 
-function performStateCallbacks()
+function performStateCallbacks(array $userIds = null)
 {
     // Get the latest codes for each user
-    $codeRows = getLatestUserCodes();
+    $codeRows = getLatestUserCodes($userIds);
     logtext("###Retrieved " . count($codeRows) . " codes");
 
     // Get (or request) access tokens for each
@@ -1263,7 +1275,7 @@ function performStateCallbacks()
         $token = getAccessTokenByCode($codeRow);
         $stateCallbackUri = $codeRow[STATE_URI];
         if ($token) {
-            $beds = getBeds(false);
+            $beds = getBeds(false, $codeRow[USER_ID]);
 
             $idsAndSides = [];
             foreach ($beds as $bed) {
@@ -1357,7 +1369,7 @@ function makeStateCallbackRequest(string $token, array $idsAndSides, string $sta
     $beds = getBedState($ids);
 
     parseBedState($beds, $request, $idsAndSides);
-    $response = makeRequest($stateCallbackUri, $request, [], 'POST');
+    $response = makeRequest($stateCallbackUri, $request, ['Content-Type' => 'application/json', 'charset' => 'utf-8'], 'POST');
     return $response;
 }
 
@@ -1511,10 +1523,13 @@ function getTokenByCodeId(int $codeId, string $specificField = null): mixed
 }
 
 
-function getLatestUserCodes()
+function getLatestUserCodes(array $userIds = null)
 {
-    $codes = [];
+    $userIdStr = '';
+    if ($userIds) {
+        $userIdStr = 'AND t1.' . USER_ID . ' IN ("' . implode('","', $userIds) . '")';
+    }
     $db = getDb();
-    $sql = "SELECT t1.* FROM " . ST_CALLBACK_CODE . " t1 WHERE t1.id = (SELECT MAX(t2.id) FROM " . ST_CALLBACK_CODE . " t2 WHERE t2." . USER_ID . " = t1." . USER_ID . ")";
+    $sql = "SELECT t1.* FROM " . ST_CALLBACK_CODE . " t1 WHERE t1.id = (SELECT MAX(t2.id) FROM " . ST_CALLBACK_CODE . " t2 WHERE t2." . USER_ID . " = t1." . USER_ID . " $userIdStr)";
     return $db->raw($sql);
 }

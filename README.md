@@ -36,64 +36,64 @@ The [capabilities](https://developer.smartthings.com/docs/devices/capabilities/c
 2. Initialize the [oauth2-server-php](https://github.com/jasonkaruza/oauth2-server-php) database by creating [all of the needed tables](https://bshaffer.github.io/oauth2-server-php-docs/cookbook/) and a user that will be able to connect to it from PHP.
   ```
   CREATE TABLE `oauth_access_tokens` (
-  `access_token` varchar(40) COLLATE utf8_unicode_ci NOT NULL,
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `user_id` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `access_token` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`access_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
   
   CREATE TABLE `oauth_authorization_codes` (
-  `authorization_code` varchar(40) COLLATE utf8_unicode_ci NOT NULL,
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `user_id` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `authorization_code` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `redirect_uri` varchar(2000) COLLATE utf8_unicode_ci DEFAULT NULL,
   `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   `id_token` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL,
   `code_challenge` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `code_challenge_method` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `code_challenge_method` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`authorization_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_clients` (
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `client_secret` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `client_secret` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `redirect_uri` varchar(2000) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `grant_types` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `grant_types` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `user_id` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`client_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_jwt` (
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `subject` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `subject` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `public_key` varchar(2000) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_refresh_tokens` (
-  `refresh_token` varchar(40) COLLATE utf8_unicode_ci NOT NULL,
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `user_id` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `refresh_token` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`refresh_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_scopes` (
-  `scope` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
+  `scope` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
   `is_default` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`scope`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_users` (
-  `username` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
+  `username` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
   `password` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
   `first_name` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
   `last_name` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `email` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `email` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `email_verified` tinyint(1) DEFAULT NULL,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`username`)
@@ -101,9 +101,9 @@ CREATE TABLE `oauth_users` (
 
 CREATE TABLE `st_callback_code` (
   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `access_token` varchar(255) NOT NULL,
-  `code` varchar(255) UNIQUE NOT NULL,
-  `user_id` varchar(255) NOT NULL,
+  `access_token` varchar(500) NOT NULL,
+  `code` varchar(500) UNIQUE NOT NULL,
+  `user_id` varchar(500) NOT NULL,
   `token_uri` varchar(2000) NOT NULL,
   `state_uri` varchar(2000) NOT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -112,8 +112,8 @@ CREATE TABLE `st_callback_code` (
 
 CREATE TABLE `st_callback_token` (
   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `access_token` varchar(255) NOT NULL,
-  `refresh_token` varchar(255) NOT NULL,
+  `access_token` varchar(500) NOT NULL,
+  `refresh_token` varchar(500) NOT NULL,
   `st_callback_code_id` bigint NOT NULL,
   `expires_in` int(8) NOT NULL,
   `expires_at` DATETIME NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE `st_callback_token` (
 
 CREATE TABLE `st_user_settings` (
   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `user_id` varchar(255) NOT NULL,
+  `user_id` varchar(500) NOT NULL,
   `timezone` varchar(255) NOT NULL,
   `sleep_start_time` DATETIME DEFAULT NULL,
   `sleep_end_time` DATETIME DEFAULT NULL,

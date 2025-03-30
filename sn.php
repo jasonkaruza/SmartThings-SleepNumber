@@ -228,8 +228,8 @@ else {
             $cronStart = date('Y-m-d H:i:s');
             logtext("###$cronStart CRON JOB STARTED FOR ITYPE $iType");
             switch ($iType) {
-                    // We want to facilitate a callback to SmartThings with state
-                    // updates https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
+                // We want to facilitate a callback to SmartThings with state
+                // updates https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
                 case STATE_CALLBACK:
                     performStateCallbacks($userIds);
                     break;
@@ -1062,12 +1062,13 @@ function sendBedCommands(array $commands): array
  */
 function getClient(string $userId = null): SleepyqPHP
 {
-    global $sleepyq, $authentication;
+    global $sleepyq, $authentication, $server;
 
     $error = null;
     $username = $password = '';
 
-    if ($sleepyq == null) {
+    // If the sleepyq client has not been initialized OR a userId was provided (for cron context)
+    if ($sleepyq == null || $userId) {
 
         // Single-account configuration
         if (SINGLE_ACCOUNT_CONFIG) {

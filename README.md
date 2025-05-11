@@ -187,6 +187,15 @@ Additionally, you will need to populate the following values in `oauth/settings.
 1. Once you have your SmartThings Client ID and Secret, insert them into the `oauth_clients` table along with the `redirect_uri`. The Client ID should match the value of `SN_CLIENT_ID` and Client Secret should match `SN_CLIENT_SECRET` `define()` values from `oauth/settings.php`
 2. You will also need to set an environment variable using the value for the `ENCRYPTION_ENV_VARIABLE_NAME` define (e.g. `SN_ENCRYPTION_PEPPER`) as the NAME of the environment variable, and set it to some other random string for extra security when encrypting/decrypting passwords in the database. Depending on if your code is running on Windows, Linux, MacOS, you'll need to set the environment variable differently and ensure that when the code is run on the server by a web request that the variable is correctly loaded for the code to use. Also keep in mind the length of the key that is used with the selected encryption cipher. E.g. with AES 256, the max length is 32 characters, so use half for the key in the settings file, and half for your pepper environment variable.
 
+# Setting up a cron job to update the app if device state changes
+SmartThings supports [`stateCallback`](https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#device-state-callback) interaction types that allow for updating the state of the device in SmartThings when updated externally in SleepNumber. An example would be when updating the presence of the sleeper in the bed if they get out of bed to then trigger a SmartThings routine (such as turning on the under-bed lighting). This has to be a cron job because there is no (known) SleepNumber subscription to changes that exists.
+
+At minimum, a cron job would need to run with `php sn.php --itype=stateCallback --iscron=true`, but if you defined an `ENCRYPTION_PEPPER` value as an environment variable, you may also need to reference the `php.ini` file like `php -c /path/to/the/php.ini /path/to/the/st/sn.php --itype=stateCallback --iscron=true`
+
+The cron job functionality is configured to only perform on users that have:
+1. A `sleep_start_time` and `sleep_end_time` that is not `NULL` in `st_user_settings`
+2. Execute the callbacks to SmartThings when the current time is between `sleep_start_time` and `sleep_end_time`
+
 # SmartThings App (Android) Device Adding
 1. In the SmartThings app, enable Developer Mode under Menu->Settings gear->Push and hold About SmartThings for 5 seconds->scroll down a bit and see Developer Mode toggle->toggle it on and restart the app.
 2. To add a test device go to Devices tab->+ in top right->Add device->Partner Devices->My Testing Devices->Select the device

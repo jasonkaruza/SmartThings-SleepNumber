@@ -2,6 +2,7 @@
 // sn2.php
 require_once "./oauth/loader.php";
 require_once "./SleepyqPHP/sleepyq.php";
+require_once "./helpers.php";
 
 $headers = getallheaders();
 $authentication = $requestId = null;
@@ -138,6 +139,7 @@ define('SLEEP_END_TIME', 'sleep_end_time');
 define('SLEEP_START_TIME', 'sleep_start_time');
 define('STATE_URI', 'state_uri');
 define('ST_CALLBACK_CODE_ID', 'st_callback_code_id');
+define('ST_USER_SETTINGS', 'st_user_settings');
 define('TIMEZONE', 'timezone');
 define('TOKEN_URI', 'token_uri');
 define('USER_ID', 'user_id');
@@ -231,7 +233,18 @@ else {
                 // We want to facilitate a callback to SmartThings with state
                 // updates https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
                 case STATE_CALLBACK:
-                    performStateCallbacks($userIds);
+                    // If no user IDs specified, we will get users that have callbacks enabled by virtue of sleep start/end time not being null
+                    if (!$userIds) {
+                        $usersSleepInfo = getUsersWithSleepSettingsEnabled();
+                        $usersSleepInfo = assocByKey($usersSleepInfo, USER_ID);
+                        filterUsersBySleepStartEndTime($usersSleepInfo);
+                        $userIds = array_keys($usersSleepInfo);
+                        logtext("Remaining users to perform callbacks on: " . implode(',', $userIds));
+                    }
+                    // If users to perform callbacks on
+                    if ($userIds) {
+                        performStateCallbacks($userIds);
+                    }
                     break;
             }
             logtext("###$cronStart CRON JOB ENDED AT " . date('Y-m-d H:i:s') . " FOR ITYPE $iType");
@@ -1265,6 +1278,12 @@ function makeAccessTokenRequest(string $tokenUri, int $codeId, string $code = nu
     return null;
 }
 
+/**
+ * Perform the state callbacks for each user. This will get the latest code for
+ * each user, get the access token for each code, and then make the state
+ * callback request to the SmartThings API.
+ * @param array $userIds An optional array of user IDs to perform the callbacks for. If not provided, all users will be used.
+ */
 function performStateCallbacks(array $userIds = null)
 {
     // Get the latest codes for each user
@@ -1413,21 +1432,6 @@ function makeRequest($url, $data = null, $headers = [], $method = 'GET'): mixed
 }
 
 /**
- * Get the Database connection. This should be called at the top of any function
- * that relies on using the database.
- * @return Database object
- */
-function getDb()
-{
-    require_once "./db.php";
-    global $DB;
-    if (!$DB) {
-        $DB = new Database(DB_HOST, DB_NAME, DB_USER, DB_PASS);
-    }
-    return $DB;
-}
-
-/**
  * Inserts a new callback code into the database
  * @param string $accessToken The token used in the response to this server
  * @param string $code The code provided for calls to SmartThings
@@ -1523,7 +1527,11 @@ function getTokenByCodeId(int $codeId, string $specificField = null): mixed
     return $db->getRowOrFieldByField(ST_CALLBACK_TOKEN, ST_CALLBACK_CODE_ID, $codeId, $specificField);
 }
 
-
+/**
+ * Get the latest callback code for each user
+ * @param array $userIds An optional array of user IDs to filter by
+ * @return array The latest callback codes for each user
+ */
 function getLatestUserCodes(array $userIds = null)
 {
     $userIdStr = '';
@@ -1533,4 +1541,33 @@ function getLatestUserCodes(array $userIds = null)
     $db = getDb();
     $sql = "SELECT t1.* FROM " . ST_CALLBACK_CODE . " t1 WHERE t1.id = (SELECT MAX(t2.id) FROM " . ST_CALLBACK_CODE . " t2 WHERE t2." . USER_ID . " = t1." . USER_ID . " $userIdStr)";
     return $db->raw($sql);
+}
+
+/**
+ * Get user IDs, sleep start and end time for users that have those values set
+ * @return array Of arrays with USER_ID, SLEEP_START_TIME, SLEEP_END_TIME, TIMEZONE
+ */
+function getUsersWithSleepSettingsEnabled()
+{
+    $db = getDb();
+    $sql = "SELECT " . USER_ID . "," . SLEEP_START_TIME . "," . SLEEP_END_TIME . "," . TIMEZONE . " FROM " . ST_USER_SETTINGS . " WHERE " . SLEEP_START_TIME . " IS NOT NULL AND " . SLEEP_END_TIME . " IS NOT NULL";
+    return $db->raw($sql);
+}
+
+function filterUsersBySleepStartEndTime(array &$usersSleepInfo)
+{
+    $now = new DateTime();
+    logtext("Current time: " . $now->format('Y-m-d H:i:s'));
+
+    foreach ($usersSleepInfo as $userId => $userSleepInfo) {
+        $userSleepStartTime = new DateTime($userSleepInfo[SLEEP_START_TIME], new DateTimeZone($userSleepInfo[TIMEZONE]));
+        $userSleepEndTime = new DateTime($userSleepInfo[SLEEP_END_TIME], new DateTimeZone($userSleepInfo[TIMEZONE]));
+        logtext("User $userId sleep start time: " . $userSleepStartTime->format('Y-m-d H:i:s'));
+        logtext("User $userId sleep end time: " . $userSleepEndTime->format('Y-m-d H:i:s'));
+
+        if ($userSleepStartTime > $now || $userSleepEndTime < $now) {
+            logtext("User $userId sleep start time is in the future or end time is in the past. Removing from list.\n");
+            unset($usersSleepInfo[$userId]);
+        }
+    }
 }

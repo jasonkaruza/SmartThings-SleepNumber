@@ -34,3 +34,17 @@ function assocByKey(array $array, string $key): array
     }
     return $result;
 } // End function assocByKey
+
+/**
+ * 
+ * Check if the external device ID is a test device and return the value if set
+ * @param mixed $externalDeviceId
+ * @return bool
+ */
+function isOrGetTestDevice($externalDeviceId)
+{
+    global $TEST_EXTERNAL_DEVICE_ID_DEVICE_PROFILE_MAP;
+    return is_array($TEST_EXTERNAL_DEVICE_ID_DEVICE_PROFILE_MAP) && array_key_exists($externalDeviceId, $TEST_EXTERNAL_DEVICE_ID_DEVICE_PROFILE_MAP)
+        ? $TEST_EXTERNAL_DEVICE_ID_DEVICE_PROFILE_MAP[$externalDeviceId]
+        : false;
+} // End function isTestDevice

@@ -369,8 +369,9 @@ function discoveryRequest(string $reqId = null, array $auth)
     $outDevices = [];
     foreach ($beds as $bed) {
         foreach ($bed->sides as $side) {
+            $deviceId = $bed->id . DEVICE_ID_DELIM . $side;
             $outDevices[] = [
-                EXTERNAL_DEVICE_ID => $bed->id . DEVICE_ID_DELIM . $side,
+                EXTERNAL_DEVICE_ID => $deviceId,
                 "deviceCookie" => ["updatedcookie" => "12345"],
                 "friendlyName" => $bed->name . " $side",
                 "manufacturerInfo" => [
@@ -384,8 +385,8 @@ function discoveryRequest(string $reqId = null, array $auth)
                 // 	  "groups" => ["Kitchen Lights", "House Bulbs"],
                 // 	  "categories" => ["light", "switch"]
                 //   ],
-                "deviceHandlerType" => DEVICE_PROFILE_ID,
-                "deviceUniqueId" => $bed->id . DEVICE_ID_DELIM . $side
+                "deviceHandlerType" => isOrGetTestDevice($deviceId) ?: DEVICE_PROFILE_ID,
+                "deviceUniqueId" => $deviceId
             ];
         }
     }
@@ -635,6 +636,7 @@ function commandRequest($reqId, $auth, $devices)
     // to the API response not returning the target number in a timely manner
     // relative to the getting of the bed state after sending the command.
     $devicesSetToFave = [];
+    $bedSideComponentCapabilityFilters = [];
 
     // Iterate through each device
     foreach ($devices as $device) {
@@ -644,6 +646,7 @@ function commandRequest($reqId, $auth, $devices)
 
         // Iterate through each command and extract the action
         foreach ($commands as $command) {
+            $bedSideComponentCapabilityFilters[$bedId][$side][$command['component']][$command['capability']] = true;
             switch ($command['command']) {
                 case 'setLevel':
                     $level = array_values($command['arguments'])[0];
@@ -718,7 +721,7 @@ function commandRequest($reqId, $auth, $devices)
             $overrides[$bedId][$side]['number'] = $beds[$bedId]['sides'][$side]['fave'];
         }
     }
-    parseBedState($beds, $output, $idsAndSides, $overrides);
+    parseBedState($beds, $output, $idsAndSides, $overrides, $bedSideComponentCapabilityFilters);
     return $output;
 } // End function commandRequest
 
@@ -735,8 +738,13 @@ function commandRequest($reqId, $auth, $devices)
  * making changes to the state of the bed, so rather than returning incorrect or
  * stale state, it assumes that because there was no failure from the SN script
  * that the new state is that which was provided in the commandRequest itself.
+ * 
+ * $bedSideComponentCapabilityFilters is an array of $bedId => [$side => [$component => 
+ * [$capability => true]]] filters that indicates a commandRequest was received
+ * and only states that match that bed + component + capability combo should be
+ * provided in the response.
  */
-function parseBedState($beds, &$output, $idsAndSides, $overrides = [])
+function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideComponentCapabilityFilters = [])
 {
     global $BED_PRESETS, $FOOTWARM_MODES;
 
@@ -750,62 +758,83 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [])
                 if (!array_key_exists('preset', $side)) {
                     $side['preset'] = null;
                 }
+
+                $states = [];
+                // Add various states to the states array
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.airConditionerMode')) {
+                    // Foundation current preset mode
+                    $states[] = [
+                        "component" => "main",
+                        "capability" => "st.airConditionerMode",
+                        "attribute" => "airConditionerMode",
+                        // We use the extracted mode value if present, otherwise we use the text name for the bed preset if in our list. If not in the list, use the default
+                        "value" => extractOverride($overrides, $id, $side_name, 'mode') ?: (array_key_exists($side['preset'], $BED_PRESETS) ? $BED_PRESETS[$side['preset']] : $BED_PRESETS[DEFAULT_PRESET]),
+                    ];
+
+                    // Foundation preset values
+                    $states[] = [
+                        "component" => "main",
+                        "capability" => "st.airConditionerMode",
+                        "attribute" => "supportedAcModes",
+                        "value" => array_values($BED_PRESETS),
+                    ];
+                }
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.switchLevel')) {
+                    // Bed SleepNumber value
+                    $states[] = [
+                        "component" => "main",
+                        "capability" => "st.switchLevel",
+                        "attribute" => "level",
+                        "value" => extractOverride($overrides, $id, $side_name, 'number') ?: $side['sleepNumber'],
+                    ];
+                }
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.switch')) {
+                    // Switch to indicate if in Favorite configuration, or not
+                    $states[] = [
+                        "component" => "main",
+                        "capability" => "st.switch",
+                        "attribute" => "switch",
+                        "value" => extractOverride($overrides, $id, $side_name, 'fave') ?: ((($side['preset'] == FAVORITE) && ($side['sleepNumber'] == $side['fave']))
+                            ? SWITCH_ON : SWITCH_OFF)
+                    ];
+                }
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'footwarming', 'st.presenceSensor')) {
+                    // SmartThings presenceSensor indicating if footwarming is available or not
+                    $states[] = [
+                        "component" => "footwarming",
+                        "capability" => "st.presenceSensor",
+                        "attribute" => "presence",
+                        "value" => extractOverride($overrides, $id, $side_name, 'footwarmingAvailable') ?: ($side['footwarmingAvailable'] ? FOOTWARM_AVAILABLE : FOOTWARM_NOT_AVAILABLE)
+                    ];
+                }
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'footwarming', 'st.airConditionerFanMode')) {
+                    // Footwarming current value
+                    $states[] = [
+                        "component" => "footwarming",
+                        "capability" => "st.airConditionerFanMode",
+                        "attribute" => "fanMode",
+                        "value" => extractOverride($overrides, $id, $side_name, 'footwarmingMode') ?: $side['footwarmingMode'],
+                    ];
+                }
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'footwarming', 'st.airConditionerFanMode')) {
+                    // Footwarming possible values
+                    $states[] = [
+                        "component" => "footwarming",
+                        "capability" => "st.airConditionerFanMode",
+                        "attribute" => "supportedAcFanModes",
+                        "value" => array_values($FOOTWARM_MODES),
+                    ];
+                }
+
+                // Add the states to the response
                 $output[DEVICE_STATE][] = [
                     EXTERNAL_DEVICE_ID => $id . DEVICE_ID_DELIM . $side_name,
                     "deviceCookie" => [],
-                    "states" => [
-                        // Foundation current preset mode
-                        [
-                            "component" => "main",
-                            "capability" => "st.airConditionerMode",
-                            "attribute" => "airConditionerMode",
-                            // We use the extracted mode value if present, otherwise we use the text name for the bed preset if in our list. If not in the list, use the default
-                            "value" => extractOverride($overrides, $id, $side_name, 'mode') ?: (array_key_exists($side['preset'], $BED_PRESETS) ? $BED_PRESETS[$side['preset']] : $BED_PRESETS[DEFAULT_PRESET]),
-                        ],
-                        // Foundation preset values
-                        [
-                            "component" => "main",
-                            "capability" => "st.airConditionerMode",
-                            "attribute" => "supportedAcModes",
-                            "value" => array_values($BED_PRESETS),
-                        ],
-                        // Bed SleepNumber value
-                        [
-                            "component" => "main",
-                            "capability" => "st.switchLevel",
-                            "attribute" => "level",
-                            "value" => extractOverride($overrides, $id, $side_name, 'number') ?: $side['sleepNumber'],
-                        ],
-                        // Switch to indicate if in Favorite configuration, or not
-                        [
-                            "component" => "main",
-                            "capability" => "st.switch",
-                            "attribute" => "switch",
-                            "value" => extractOverride($overrides, $id, $side_name, 'fave') ?: ((($side['preset'] == FAVORITE) && ($side['sleepNumber'] == $side['fave']))
-                                ? SWITCH_ON : SWITCH_OFF)
-                        ],
-                        // SmartThings presenceSensor indicating if footwarming is available or not
-                        [
-                            "component" => "footwarming",
-                            "capability" => "st.presenceSensor",
-                            "attribute" => "presence",
-                            "value" => extractOverride($overrides, $id, $side_name, 'footwarmingAvailable') ?: ($side['footwarmingAvailable'] ? FOOTWARM_AVAILABLE : FOOTWARM_NOT_AVAILABLE)
-                        ],
-                        // Footwarming current value
-                        [
-                            "component" => "footwarming",
-                            "capability" => "st.airConditionerFanMode",
-                            "attribute" => "fanMode",
-                            "value" => extractOverride($overrides, $id, $side_name, 'footwarmingMode') ?: $side['footwarmingMode'],
-                        ],
-                        // Footwarming possible values
-                        [
-                            "component" => "footwarming",
-                            "capability" => "st.airConditionerFanMode",
-                            "attribute" => "supportedAcFanModes",
-                            "value" => array_values($FOOTWARM_MODES),
-                        ],
-                    ]
+                    "states" => $states,
                 ];
             }
         }
@@ -814,14 +843,23 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [])
 
 /**
  * A helper function used to do the key checks and lookup of a particular
- * bedId+side+key_name combo from an $overrides assoc array.
+ * bedId+side+key_name combo from an $overrides assoc array. If key2 is also
+ * supplied, it will check for that key within the next layer of the associative
+ * array.
+ * $bedId => [$side => [$key => [$optionalKey2 => value]]]
  */
-function extractOverride($overrides, $bedId, $side, $key)
+function extractOverride($overrides, $bedId, $side, $key, $key2 = null)
 {
     if (array_key_exists($bedId, $overrides)) {
         if (array_key_exists($side, $overrides[$bedId])) {
             if (array_key_exists($key, $overrides[$bedId][$side])) {
-                return $overrides[$bedId][$side][$key];
+                if ($key2 === null) {
+                    return $overrides[$bedId][$side][$key];
+                } else {
+                    if (array_key_exists($key2, $overrides[$bedId][$side][$key])) {
+                        return $overrides[$bedId][$side][$key][$key2];
+                    }
+                }
             }
         }
     }

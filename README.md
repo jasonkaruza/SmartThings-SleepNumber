@@ -204,6 +204,12 @@ The cron job functionality is configured to only perform on users that have:
 - When making updates to the Device Profile JSON via https://developer.smartthings.com/workspace/deviceprofiles/edit, re-add the Test Device through the SmartThings app, kill the app, and give it a few minutes for the updates to appear.
 - To change the DetailView label, put it INSIDE the `values` array's object.
 - If you encounter exceptions when trying to save a Refresh or Access token that has a `0` expiry value (it may evaluate to 1969-12-31 16:00:00), make sure that your MySQL database `my.cnf`/`my.ini` config does not have `NO_ZERO_IN_DATE,NO_ZERO_DATE,STRICT_TRANS_TABLES` in the `sql-mode`. You can check this by running `SHOW VARIABLES LIKE 'sql_mode';` from a MySQL client.
+- If iterating on the Device Profile and modifying components/capabilities, this is controlled through the `discoveryRequest` type's `deviceHandlerType` key, which specifies the device profile UUID to use in the SmartThings app. This is followed by a `stateRefreshRequest`, which can provide all of the capabilities for the new device profile. To help with this:
+  - Clone or create a new device profile in the Schema App project via https://developer.smartthings.com/device-profile-builder
+  - Set test external device IDs => the new device profile ID via `$TEST_EXTERNAL_DEVICE_ID_DEVICE_PROFILE_MAP` in settings to specify test devices for the new profile while all existing users continue to use the existing device profile
+  - Make conditional updates to `stateRefreshResponse`s to support the new device profile until ready to migrate everyone else over
+  - When ready, change the `DEVICE_PROFILE_ID` setting to the new device profile ID, and the next time users' apps perform a `discoveryRequest` they will get the updated `deviceHandlerType` value, and the subsequent `stateRefreshRequest` will get the new components/capabilities/states
+  - NOTE: All of this is possible because `commandRequest`s should ONLY return states for components/capabilities that are targeted by the request (thus, only return states for the device profile that was last returned by the `discoveryRequest` for that app)
 
 # Helpful links
 - https://api.smartthings.com/v1/presentation?manufacturerName=f2sv&presentationId=ST_#

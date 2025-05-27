@@ -66,6 +66,7 @@ define('DEFAULT_PRESET', FAVORITE);
 
 define('BED_COMMAND', 'command');
 define('BED_FAVORITES', 'favorites');
+define('BED_ID', 'bed_id');
 define('BED_IDS', 'bed_ids');
 define('BEDS', 'beds');
 define('BED_PASSWORD', 'password');
@@ -193,7 +194,7 @@ else {
      * Test command samples:
      * - php sn.php --itype=discoveryRequest --token=XYZ
      * - php sn.php --itype=stateRefreshRequest --ids=<bed_id>:right
-     * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:left","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setAirConditionerMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[80]}]},{"externalDeviceId":"<bed_id>:right","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[85]}]}]'
+     * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"e<bed_id>:left","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setAirConditionerMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[80]}]},{"externalDeviceId":"<bed_id>:right","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[85]}]}]'
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"main","capability":"st.switch","command":"on","arguments":[]}]}]'
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Low - 30 min"]}]}]'
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Off"]}]}]'
@@ -330,6 +331,7 @@ if (array_key_exists(INTERACTION_TYPE, $headers)) {
             break;
         default:
             logtext("Got unexpected interactionType:$interactionType");
+            httpError(400, json_encode(['error' => 'Invalid interactionType provided.']));
     }
 } else {
     logtext("No interactionType in headers:" . print_r($headers, true));
@@ -779,6 +781,7 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                         "value" => array_values($BED_PRESETS),
                     ];
                 }
+
                 if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.switchLevel')) {
                     // Bed SleepNumber value
                     $states[] = [
@@ -828,6 +831,32 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                         "attribute" => "supportedAcFanModes",
                         "value" => array_values($FOOTWARM_MODES),
                     ];
+                }
+
+                // If we are testing a new device profile, add additional
+                // states to the response for the test device
+                if (isOrGetTestDevice($id . DEVICE_ID_DELIM . $side_name)) {
+                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.presenceSensor')) {
+                        // SmartThings presenceSensor indicating if the user is in bed or not
+                        $states[] = [
+                            "component" => "main",
+                            "capability" => "st.presenceSensor",
+                            "attribute" => "presence",
+                            "value" => extractOverride($overrides, $id, $side_name, 'isInBed') ?? false,
+                        ];
+                    }
+
+                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.airQuality')) {
+                        // Bed SleepNumber value
+                        $states[] = [
+                            "component" => "main",
+                            "capability" => "st.airQualitySensor",
+                            "attribute" => "airQuality",
+                            "value" => extractOverride($overrides, $id, $side_name, 'score') ?: $side['sleepScore'],
+                        ];
+                    }
+
+                    //mode, laundry washer spin speed, air conditioner fan mode
                 }
 
                 // Add the states to the response
@@ -1009,12 +1038,20 @@ function getBeds($withFoundationFeatures = false, string $userId = null): array
 function getBedState($bedIds = []): array
 {
     $client = getClient();
+
+    $statuses = [];
+    // Get bed info and sleeper info for sleep score (sleepIq)
+    $bedAndSleeperData = $client->bedsWithSleeperStatus();
+
     // Get each bed's current sides' statuses
-    $statuses = $client->getBedSidesStatuses();
+    foreach ($bedAndSleeperData as $bed) {
+        $statuses[$bed->bedId] = $bed->sides;
+    }
+
     foreach ($bedIds as $bedId) {
         $sideFaves = $client->getBedFaves($bedId);
         $sidePresets = $client->getBedSidePresets($bedId);
-        $foundationFeatures = $client->getFoundationFeatures($bedId);
+        $foundationFeatures = $client->getFoundationFeatures($bedId); // Has <side>UnderbedLightPMW
         $foundationFootwarming = null;
         if ($foundationFeatures->hasFootWarming) {
             $foundationFootwarming = $client->getFoundationFootwarming($bedId);
@@ -1031,11 +1068,18 @@ function getBedState($bedIds = []): array
             foreach (SleepyqPHP::SIDES_NAMES as $side) {
                 if (array_key_exists($side, $bedStatus)) {
                     $sideStatus = $bedStatus[$side];
+                    $sleeperId = $sideStatus->sleeper->sleeperId;
                     if ($sideStatus) {
-                        $data[$bedId]['sides'][$side]['sleepNumber'] = $sideStatus['sleepNumber'];
+                        $data[$bedId]['sides'][$side]['sleepNumber'] = $sideStatus->sleepNumber;
                         $data[$bedId]['sides'][$side]['fave'] = $sideFaves[$side];
                         $data[$bedId]['sides'][$side]['footwarmingAvailable'] = $foundationFeatures->hasFootWarming;
                         $data[$bedId]['sides'][$side]['footwarmingMode'] = ($foundationFootwarming != null) ? mapModeToFootWarming($foundationFootwarming->sides[$side]) : FOOTWARM_TEMP_OFF; // Array with 'temp' and 'time' keys
+
+                        // Retrieve the sleeper info to get their sleep score
+                        if ($sleeperId) {
+                            $sleepData = $client->getSleepData($sleeperId, 'D')[0];
+                            $data[$bedId]['sides'][$side]['sleepScore'] = $sleepData->avgSleepIQ;
+                        }
                     }
                 }
             }

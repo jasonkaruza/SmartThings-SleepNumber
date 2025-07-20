@@ -1,4 +1,5 @@
 <?php
+require_once "oauth/settings.php";
 
 /** Helper functions **/
 

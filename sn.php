@@ -79,6 +79,10 @@ define('FOOTWARM_AVAILABLE', 'present'); // For SmartThings presenceSensor
 define('FOOTWARM_NOT_AVAILABLE', 'not present'); // For SmartThings presenceSensor
 define('FOOTWARM_MODE_DELIM', ' - ');
 
+// Bed presence
+define('IN_BED_PRESENT', 'present');
+define('IN_BED_NOT_PRESENT', 'not present');
+
 // Footwarming temperature values
 define('FOOTWARM_TEMP_OFF', 'Off');
 define('FOOTWARM_TEMP_LOW', 'Low');
@@ -123,6 +127,40 @@ foreach ($FOOTWARM_TEMPS as $temp) {
     }
 }
 
+// Underbed Lighting modes
+define('UNDERBED_LIGHTING_AUTO', 'Auto');
+define('UNDERBED_LIGHTING_OFF', 'Off');
+define('UNDERBED_LIGHTING_ON', 'On');
+$UNDERBED_LIGHTING_SETTINGS = [
+    SleepyqPHP::LIGHT_SETTINGS_OFF => UNDERBED_LIGHTING_OFF,
+    SleepyqPHP::LIGHT_SETTINGS_ON => UNDERBED_LIGHTING_ON,
+];
+
+// Underbed Lighting brightness levels
+define('UNDERBED_LIGHTING_LOW', 'Low');
+define('UNDERBED_LIGHTING_MEDIUM', 'Medium');
+define('UNDERBED_LIGHTING_HIGH', 'High');
+$UNDERBED_LIGHTING_BRIGHTNESS = [
+    SleepyqPHP::LIGHT_BRIGHTNESS_LOW => UNDERBED_LIGHTING_LOW,
+    SleepyqPHP::LIGHT_BRIGHTNESS_MEDIUM => UNDERBED_LIGHTING_MEDIUM,
+    SleepyqPHP::LIGHT_BRIGHTNESS_HIGH => UNDERBED_LIGHTING_HIGH,
+];
+
+// Underbed Lighting timer durations
+define('UNDERBED_LIGHTING_TIME_15_MIN', '15 min');
+define('UNDERBED_LIGHTING_TIME_30_MIN', '30 min');
+define('UNDERBED_LIGHTING_TIME_45_MIN', '45 min');
+define('UNDERBED_LIGHTING_TIME_1_HR', '1 hr');
+define('UNDERBED_LIGHTING_TIME_2_HR', '2 hrs');
+define('UNDERBED_LIGHTING_TIME_3_HR', '3 hrs');
+$UNDERBED_LIGHTING_TIMES = [
+    SleepyqPHP::LIGHT_TIMER_15 => UNDERBED_LIGHTING_TIME_15_MIN,
+    SleepyqPHP::LIGHT_TIMER_30 => UNDERBED_LIGHTING_TIME_30_MIN,
+    SleepyqPHP::LIGHT_TIMER_45 => UNDERBED_LIGHTING_TIME_45_MIN,
+    SleepyqPHP::LIGHT_TIMER_60 => UNDERBED_LIGHTING_TIME_1_HR,
+    SleepyqPHP::LIGHT_TIMER_120 => UNDERBED_LIGHTING_TIME_2_HR,
+    SleepyqPHP::LIGHT_TIMER_180 => UNDERBED_LIGHTING_TIME_3_HR,
+];
 // Others
 define('DEVICE_ID_DELIM', ':');
 
@@ -842,7 +880,7 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                             "component" => "main",
                             "capability" => "st.presenceSensor",
                             "attribute" => "presence",
-                            "value" => extractOverride($overrides, $id, $side_name, 'isInBed') ?? false,
+                            "value" => extractOverride($overrides, $id, $side_name, 'isInBed') ?: ($side['isInBed'] ? IN_BED_PRESENT : IN_BED_NOT_PRESENT),
                         ];
                     }
 

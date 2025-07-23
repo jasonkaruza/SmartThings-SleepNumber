@@ -127,33 +127,46 @@ foreach ($FOOTWARM_TEMPS as $temp) {
     }
 }
 
-// Underbed Lighting modes
+// Underbed Lighting settings
+define('UNDERBED_LIGHTING_AVAILABLE', 'present');
+define('UNDERBED_LIGHTING_NOT_AVAILABLE', 'not present');
 define('UNDERBED_LIGHTING_AUTO', 'Auto');
 define('UNDERBED_LIGHTING_OFF', 'Off');
 define('UNDERBED_LIGHTING_ON', 'On');
+define('SLEEPYQPHP_LIGHTING_AUTO', -1); // SleepyqPHP uses -1 for Auto
 $UNDERBED_LIGHTING_SETTINGS = [
     SleepyqPHP::LIGHT_SETTINGS_OFF => UNDERBED_LIGHTING_OFF,
     SleepyqPHP::LIGHT_SETTINGS_ON => UNDERBED_LIGHTING_ON,
+    SLEEPYQPHP_LIGHTING_AUTO => UNDERBED_LIGHTING_AUTO, // This is a custom mapping
 ];
+$UNDERBED_LIGHTING_SETTINGS_MAP = array_flip($UNDERBED_LIGHTING_SETTINGS);
+define('DEFAULT_UNDERBED_LIGHTING_SETTING', SleepyqPHP::LIGHT_SETTINGS_OFF); // Default underbed lighting setting if not set
 
 // Underbed Lighting brightness levels
-define('UNDERBED_LIGHTING_LOW', 'Low');
-define('UNDERBED_LIGHTING_MEDIUM', 'Medium');
-define('UNDERBED_LIGHTING_HIGH', 'High');
+define('UNDERBED_LIGHTING_BRIGHTNESS_OFF', 'Off');
+define('UNDERBED_LIGHTING_BRIGHTNESS_LOW', 'Low');
+define('UNDERBED_LIGHTING_BRIGHTNESS_MEDIUM', 'Medium');
+define('UNDERBED_LIGHTING_BRIGHTNESS_HIGH', 'High');
 $UNDERBED_LIGHTING_BRIGHTNESS = [
-    SleepyqPHP::LIGHT_BRIGHTNESS_LOW => UNDERBED_LIGHTING_LOW,
-    SleepyqPHP::LIGHT_BRIGHTNESS_MEDIUM => UNDERBED_LIGHTING_MEDIUM,
-    SleepyqPHP::LIGHT_BRIGHTNESS_HIGH => UNDERBED_LIGHTING_HIGH,
+    SleepyqPHP::LIGHT_BRIGHTNESS_OFF => UNDERBED_LIGHTING_BRIGHTNESS_OFF,
+    SleepyqPHP::LIGHT_BRIGHTNESS_LOW => UNDERBED_LIGHTING_BRIGHTNESS_LOW,
+    SleepyqPHP::LIGHT_BRIGHTNESS_MEDIUM => UNDERBED_LIGHTING_BRIGHTNESS_MEDIUM,
+    SleepyqPHP::LIGHT_BRIGHTNESS_HIGH => UNDERBED_LIGHTING_BRIGHTNESS_HIGH,
 ];
+$UNDERBED_LIGHTING_BRIGHTNESS_MAP = array_flip($UNDERBED_LIGHTING_BRIGHTNESS);
+define('DEFAULT_UNDERBED_LIGHTING_BRIGHTNESS', SleepyqPHP::LIGHT_BRIGHTNESS_OFF); // Default underbed lighting brightness if not set
 
 // Underbed Lighting timer durations
+define('UNDERBED_LIGHTING_TIME_OFF', 'Off');
 define('UNDERBED_LIGHTING_TIME_15_MIN', '15 min');
 define('UNDERBED_LIGHTING_TIME_30_MIN', '30 min');
 define('UNDERBED_LIGHTING_TIME_45_MIN', '45 min');
 define('UNDERBED_LIGHTING_TIME_1_HR', '1 hr');
 define('UNDERBED_LIGHTING_TIME_2_HR', '2 hrs');
 define('UNDERBED_LIGHTING_TIME_3_HR', '3 hrs');
+define('SLEEPYQPHP_LIGHTING_TIME_OFF', 0); // SleepyqPHP uses -1 for Off
 $UNDERBED_LIGHTING_TIMES = [
+    SLEEPYQPHP_LIGHTING_TIME_OFF => UNDERBED_LIGHTING_TIME_OFF,
     SleepyqPHP::LIGHT_TIMER_15 => UNDERBED_LIGHTING_TIME_15_MIN,
     SleepyqPHP::LIGHT_TIMER_30 => UNDERBED_LIGHTING_TIME_30_MIN,
     SleepyqPHP::LIGHT_TIMER_45 => UNDERBED_LIGHTING_TIME_45_MIN,
@@ -161,6 +174,9 @@ $UNDERBED_LIGHTING_TIMES = [
     SleepyqPHP::LIGHT_TIMER_120 => UNDERBED_LIGHTING_TIME_2_HR,
     SleepyqPHP::LIGHT_TIMER_180 => UNDERBED_LIGHTING_TIME_3_HR,
 ];
+$UNDERBED_LIGHTING_TIMES_MAP = array_flip($UNDERBED_LIGHTING_TIMES);
+define('DEFAULT_UNDERBED_LIGHTING_TIME', SLEEPYQPHP_LIGHTING_TIME_OFF); // Default underbed lighting time if not set
+
 // Others
 define('DEVICE_ID_DELIM', ':');
 
@@ -230,11 +246,11 @@ else {
     // If calling via CLI, it is for testing or cron purposes
     /**
      * Test command samples:
-     * - php sn.php --itype=discoveryRequest --token=XYZ
-     * - php sn.php --itype=stateRefreshRequest --ids=<bed_id>:right
-     * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"e<bed_id>:left","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setAirConditionerMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[80]}]},{"externalDeviceId":"<bed_id>:right","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[85]}]}]'
-     * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"main","capability":"st.switch","command":"on","arguments":[]}]}]'
-     * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Low - 30 min"]}]}]'
+     * - php sn.php --itype=discoveryRequest --token=<oauth_access_token>
+     * - php sn.php --itype=stateRefreshRequest --token=<oauth_access_token> --ids=<bed_id>:right
+     * - php sn.php --itype=commandRequest --token=<oauth_access_token> --devices='[{"externalDeviceId":"e<bed_id>:left","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setAirConditionerMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[80]}]},{"externalDeviceId":"<bed_id>:right","deviceCookie":[],"commands":[{"component":"main","capability":"st.mode","command":"setMode","arguments":["Flat"]},{"component":"main","capability":"st.level","command":"setLevel","arguments":[85]}]}]'
+     * - php sn.php --itype=commandRequest --token=<oauth_access_token> --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"main","capability":"st.switch","command":"on","arguments":[]}]}]'
+     * - php sn.php --itype=commandRequest --token=<oauth_access_token> --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Low - 30 min"]}]}]'
      * - php sn.php --itype=commandRequest --devices='[{"externalDeviceId":"<bed_id>:right","deviceCookie":{"updatedcookie":"12345"},"commands":[{"component":"footwarming","capability":"st.airConditionerFanMode","command":"setFanMode","arguments":["Off"]}]}]'
      * - php sn.php --token=<token> --itype=grantCallbackAccess --callbackAuthentication='{"grantType":"authorization_code","scope":"callback-access","code":"<longstring>","clientId":"<something>"}' --callbackUrls='{"oauthToken":"https:\/\/c2c-us.smartthings.com\/oauth\/token","stateCallback":"https:\/\/c2c-us.smartthings.com\/device\/events"}'
      * - php sn.php --itype=stateCallback --iscron=true
@@ -670,6 +686,11 @@ function commandRequest($reqId, $auth, $devices)
     $overrides = [];
 
     $idsAndSides = extractExternalDeviceIds($devices);
+    $ids = array_keys($idsAndSides);
+
+    // We moved this up before sendBedCommands() to get the current state of bed
+    // lights because the API call to set the lights requires on/off + 
+    $beds = getBedState($ids);
 
     // This will be used to shortcut overriding the sleep number if we got a
     // command to set a side to the Favorite position and number. This is due
@@ -684,64 +705,123 @@ function commandRequest($reqId, $auth, $devices)
         // Extract the bed ID and side
         list($bedId, $side) = explode(DEVICE_ID_DELIM, $device[EXTERNAL_DEVICE_ID]);
 
+        // Extract out lighting settings to use or override if in the commands
+        $lightingSettings = [
+            'lightingAvailable' => $beds[$bedId]['sides'][$side]['lightingAvailable'],
+            'lightingSetting' => $beds[$bedId]['sides'][$side]['lightingSetting'],
+            'lightingBrightness' => $beds[$bedId]['sides'][$side]['lightingBrightness'],
+            'lightingTimer' => $beds[$bedId]['sides'][$side]['lightingTimer'],
+        ];
+
         // Iterate through each command and extract the action
         foreach ($commands as $command) {
             $bedSideComponentCapabilityFilters[$bedId][$side][$command['component']][$command['capability']] = true;
-            switch ($command['command']) {
-                case 'setLevel':
-                    $level = array_values($command['arguments'])[0];
-                    $snCommands[] = [
+            // For main and footwarming components
+            if (in_array($command['component'], ['main', 'footwarming'])) {
+                switch ($command['command']) {
+                    case 'setLevel':
+                        $level = array_values($command['arguments'])[0];
+                        $snCommands[] = [
+                            "id" => $bedId,
+                            "side" => $side,
+                            "number" => $level,
+                            "component" => $command['component'],
+                        ];
+                        $overrides[$bedId][$side]['number'] = $level;
+                        break;
+
+                    case 'setAirConditionerMode':
+                        $mode = array_values($command['arguments'])[0];
+                        $intMode = mapModeToBedPreset($mode);
+                        $snCommands[] = [
+                            "id" => $bedId,
+                            "side" => $side,
+                            "mode" => $intMode,
+                            "component" => $command['component'],
+                        ];
+                        $overrides[$bedId][$side]['mode'] = $mode;
+                        break;
+
+                    case 'on':
+                        $snCommands[] = [
+                            "id" => $bedId,
+                            "side" => $side,
+                            "fave" => "on",
+                            "component" => $command['component'],
+                        ];
+                        $overrides[$bedId][$side]['fave'] = 'on';
+
+                        // This will let us know to set a sleep number override
+                        // further down after getting the bed state
+                        $devicesSetToFave[$bedId][$side] = $side;
+                        break;
+
+                    case 'setFanMode':
+                        $rawmode = $mode = array_values($command['arguments'])[0];
+                        // Check to see if the value contains the delimiter. If not,
+                        // it's probably "Off" and we want to just add on a duration
+                        // that will be ignored, but will allow the splitting to work
+                        // consistently.
+                        if (!str_contains($mode, FOOTWARM_MODE_DELIM)) {
+                            $mode .= FOOTWARM_MODE_DELIM . FOOTWARM_TIME_30_MIN;
+                        }
+                        list($temp, $time) = explode(FOOTWARM_MODE_DELIM, $mode);
+
+                        $snCommands[] = [
+                            "id" => $bedId,
+                            "side" => $side,
+                            "temp" => mapFootWarmingTempToNumber($temp),
+                            "time" => mapFootWarmingTimeToNumber($time),
+                            "component" => $command['component'],
+                        ];
+                        $overrides[$bedId][$side]['footwarmingMode'] = $rawmode;
+                        $overrides[$bedId][$side]['footwarmingAvailable'] = FOOTWARM_AVAILABLE;
+                        break;
+                }
+            } // End if main or footwarming component
+
+            // For underbed lights component
+            else if ($command['component'] == 'lights') {
+                if (!array_key_exists("lights$bedId", $snCommands)) {
+                    // If the lights command is not already set, we will set it
+                    $snCommands["lights$bedId"] = [
                         "id" => $bedId,
                         "side" => $side,
-                        "number" => $level,
+                        "lightingAvailable" => $lightingSettings['lightingAvailable'],
+                        "lightingSetting" => $lightingSettings['lightingSetting'],
+                        "lightingBrightness" => $lightingSettings['lightingBrightness'],
+                        "lightingTimer" => $lightingSettings['lightingTimer'],
+                        "component" => $command['component'],
                     ];
-                    $overrides[$bedId][$side]['number'] = $level;
-                    break;
+                }
+                switch ($command['command']) {
+                    // Setting
+                    case 'setMode':
+                        $setting = array_values($command['arguments'])[0];
 
-                case 'setAirConditionerMode':
-                    $mode = array_values($command['arguments'])[0];
-                    $intMode = mapModeToBedPreset($mode);
-                    $snCommands[] = [
-                        "id" => $bedId,
-                        "side" => $side,
-                        "mode" => $intMode,
-                    ];
-                    $overrides[$bedId][$side]['mode'] = $mode;
-                    break;
+                        $snCommands["lights$bedId"]['lightingSetting'] = mapLightSettingToNumber($setting);
+                        $overrides[$bedId][$side]['lightingSetting'] = $setting;
+                        $overrides[$bedId][$side]['lightingAvailable'] = UNDERBED_LIGHTING_AVAILABLE;
+                        break;
 
-                case 'on':
-                    $snCommands[] = [
-                        "id" => $bedId,
-                        "side" => $side,
-                        "fave" => "on",
-                    ];
-                    $overrides[$bedId][$side]['fave'] = 'on';
+                    // Brightness
+                    case 'setSpinSpeed':
+                        $brightness = array_values($command['arguments'])[0];
 
-                    // This will let us know to set a sleep number override
-                    // further down after getting the bed state
-                    $devicesSetToFave[$bedId][$side] = $side;
-                    break;
+                        $snCommands["lights$bedId"]['lightingBrightness'] = mapLightBrightnessToNumber($brightness);
+                        $overrides[$bedId][$side]['lightingBrightness'] = $brightness;
+                        $overrides[$bedId][$side]['lightingAvailable'] = UNDERBED_LIGHTING_AVAILABLE;
+                        break;
 
-                case 'setFanMode':
-                    $rawmode = $mode = array_values($command['arguments'])[0];
-                    // Check to see if the value contains the delimiter. If not,
-                    // it's probably "Off" and we want to just add on a duration
-                    // that will be ignored, but will allow the splitting to work
-                    // consistently.
-                    if (!str_contains($mode, FOOTWARM_MODE_DELIM)) {
-                        $mode .= FOOTWARM_MODE_DELIM . FOOTWARM_TIME_30_MIN;
-                    }
-                    list($temp, $time) = explode(FOOTWARM_MODE_DELIM, $mode);
+                    // Timer
+                    case 'setFanMode':
+                        $timer = array_values($command['arguments'])[0];
 
-                    $snCommands[] = [
-                        "id" => $bedId,
-                        "side" => $side,
-                        "temp" => mapFootWarmingTempToNumber($temp),
-                        "time" => mapFootWarmingTimeToNumber($time),
-                    ];
-                    $overrides[$bedId][$side]['footwarmingMode'] = $rawmode;
-                    $overrides[$bedId][$side]['footwarmingAvailable'] = FOOTWARM_AVAILABLE;
-                    break;
+                        $snCommands["lights$bedId"]['lightingTimer'] = mapLightTimerToNumber($timer);
+                        $overrides[$bedId][$side]['lightingTimer'] = $timer;
+                        $overrides[$bedId][$side]['lightingAvailable'] = UNDERBED_LIGHTING_AVAILABLE;
+                        break;
+                }
             }
         }
     }
@@ -755,7 +835,6 @@ function commandRequest($reqId, $auth, $devices)
         $ids = array_keys($idsAndSides);
     }
 
-    $beds = getBedState($ids);
     foreach ($devicesSetToFave as $bedId => $sides) {
         foreach ($sides as $side) {
             $overrides[$bedId][$side]['number'] = $beds[$bedId]['sides'][$side]['fave'];
@@ -773,7 +852,7 @@ function commandRequest($reqId, $auth, $devices)
  * requested by ST cloud.
  * 
  * If $overrides assoc array is provided (format bedId => side => 
- * number/mode/fave => #/<mode>/on), those will replace the values being returned
+ * number/mode/fave/etc => #/<mode>/on/etc), those will replace the values being returned
  * by this function. This is because the SN API is slow to update the state after
  * making changes to the state of the bed, so rather than returning incorrect or
  * stale state, it assumes that because there was no failure from the SN script
@@ -786,7 +865,7 @@ function commandRequest($reqId, $auth, $devices)
  */
 function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideComponentCapabilityFilters = [])
 {
-    global $BED_PRESETS, $FOOTWARM_MODES;
+    global $BED_PRESETS, $FOOTWARM_MODES, $UNDERBED_LIGHTING_SETTINGS, $UNDERBED_LIGHTING_BRIGHTNESS, $UNDERBED_LIGHTING_TIMES;
 
     // Iterate through each bed
     foreach ($beds as $id => $bed) {
@@ -800,6 +879,9 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                 }
 
                 $states = [];
+
+                /////// MAIN ///////
+
                 // Add various states to the states array
                 if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.airConditionerMode')) {
                     // Foundation current preset mode
@@ -841,39 +923,10 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                     ];
                 }
 
-                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'footwarming', 'st.presenceSensor')) {
-                    // SmartThings presenceSensor indicating if footwarming is available or not
-                    $states[] = [
-                        "component" => "footwarming",
-                        "capability" => "st.presenceSensor",
-                        "attribute" => "presence",
-                        "value" => extractOverride($overrides, $id, $side_name, 'footwarmingAvailable') ?: ($side['footwarmingAvailable'] ? FOOTWARM_AVAILABLE : FOOTWARM_NOT_AVAILABLE)
-                    ];
-                }
-
-                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'footwarming', 'st.airConditionerFanMode')) {
-                    // Footwarming current value
-                    $states[] = [
-                        "component" => "footwarming",
-                        "capability" => "st.airConditionerFanMode",
-                        "attribute" => "fanMode",
-                        "value" => extractOverride($overrides, $id, $side_name, 'footwarmingMode') ?: $side['footwarmingMode'],
-                    ];
-                }
-
-                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'footwarming', 'st.airConditionerFanMode')) {
-                    // Footwarming possible values
-                    $states[] = [
-                        "component" => "footwarming",
-                        "capability" => "st.airConditionerFanMode",
-                        "attribute" => "supportedAcFanModes",
-                        "value" => array_values($FOOTWARM_MODES),
-                    ];
-                }
-
                 // If we are testing a new device profile, add additional
                 // states to the response for the test device
                 if (isOrGetTestDevice($id . DEVICE_ID_DELIM . $side_name)) {
+
                     if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.presenceSensor')) {
                         // SmartThings presenceSensor indicating if the user is in bed or not
                         $states[] = [
@@ -893,8 +946,110 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                             "value" => extractOverride($overrides, $id, $side_name, 'score') ?: $side['sleepScore'],
                         ];
                     }
+                }
 
-                    //mode, laundry washer spin speed, air conditioner fan mode
+                /////// FOOTWARMING ///////
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'footwarming', 'st.presenceSensor')) {
+                    // SmartThings presenceSensor indicating if footwarming is available or not
+                    $states[] = [
+                        "component" => "footwarming",
+                        "capability" => "st.presenceSensor",
+                        "attribute" => "presence",
+                        "value" => extractOverride($overrides, $id, $side_name, 'footwarmingAvailable') ?: ($side['footwarmingAvailable'] ? FOOTWARM_AVAILABLE : FOOTWARM_NOT_AVAILABLE)
+                    ];
+                }
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'footwarming', 'st.airConditionerFanMode')) {
+                    // Footwarming current value
+                    $states[] = [
+                        "component" => "footwarming",
+                        "capability" => "st.airConditionerFanMode",
+                        "attribute" => "fanMode",
+                        "value" => extractOverride($overrides, $id, $side_name, 'footwarmingMode') ?: $side['footwarmingMode'],
+                    ];
+
+                    // Footwarming possible values
+                    $states[] = [
+                        "component" => "footwarming",
+                        "capability" => "st.airConditionerFanMode",
+                        "attribute" => "supportedAcFanModes",
+                        "value" => array_values($FOOTWARM_MODES),
+                    ];
+                }
+
+                /////// UNDERBED LIGHTING ///////
+
+                // If we are testing a new device profile, add additional
+                // states to the response for the test device
+                if (isOrGetTestDevice($id . DEVICE_ID_DELIM . $side_name)) {
+
+                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.presenceSensor')) {
+                        // SmartThings presenceSensor indicating if the bed has underbed lighting available or not
+                        $states[] = [
+                            "component" => "lights",
+                            "capability" => "st.presenceSensor",
+                            "attribute" => "presence",
+                            "value" => extractOverride($overrides, $id, $side_name, 'lightingAvailable') ?: ($side['lightingAvailable'] ? UNDERBED_LIGHTING_AVAILABLE : UNDERBED_LIGHTING_NOT_AVAILABLE),
+                        ];
+                    }
+
+                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.mode')) {
+                        // Light setting mode
+                        $states[] = [
+                            "component" => "lights",
+                            "capability" => "st.mode",
+                            "attribute" => "mode",
+                            // We use the extracted mode value if present, otherwise we use the text name for the setting if in our list. If not in the list, use the default
+                            "value" => extractOverride($overrides, $id, $side_name, 'lightingSetting') ?: (array_key_exists($side['lightingSetting'], $UNDERBED_LIGHTING_SETTINGS) ? $UNDERBED_LIGHTING_SETTINGS[$side['lightingSetting']] : $UNDERBED_LIGHTING_SETTINGS[DEFAULT_UNDERBED_LIGHTING_SETTING]),
+                        ];
+
+                        // Light mode possible values
+                        $states[] = [
+                            "component" => "lights",
+                            "capability" => "st.mode",
+                            "attribute" => "supportedModes",
+                            "value" => array_values($UNDERBED_LIGHTING_SETTINGS),
+                        ];
+                    }
+
+                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.laundryWasherSpinSpeed')) {
+                        // Brightness
+                        $states[] = [
+                            "component" => "lights",
+                            "capability" => "st.laundryWasherSpinSpeed",
+                            "attribute" => "spinSpeed",
+                            // We use the extracted mode value if present, otherwise we use the text name for the setting if in our list. If not in the list, use the default
+                            "value" => extractOverride($overrides, $id, $side_name, 'lightingBrightness') ?: (array_key_exists($side['lightingBrightness'], $UNDERBED_LIGHTING_BRIGHTNESS) ? $UNDERBED_LIGHTING_BRIGHTNESS[$side['lightingBrightness']] : $UNDERBED_LIGHTING_BRIGHTNESS[DEFAULT_UNDERBED_LIGHTING_BRIGHTNESS]),
+                        ];
+
+                        // Brightness possible values
+                        $states[] = [
+                            "component" => "lights",
+                            "capability" => "st.laundryWasherSpinSpeed",
+                            "attribute" => "supportedSpinSpeeds",
+                            "value" => array_values($UNDERBED_LIGHTING_BRIGHTNESS),
+                        ];
+                    }
+
+                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.airConditionerFanMode')) {
+                        // Timer (mapped to the nearest key in the UNDERBED_LIGHTING_TIMES array)
+                        $states[] = [
+                            "component" => "lights",
+                            "capability" => "st.airConditionerFanMode",
+                            "attribute" => "fanMode",
+                            // We use the extracted mode value if present, otherwise we use the text name for the setting if in our list. If not in the list, use the default
+                            "value" => extractOverride($overrides, $id, $side_name, 'lightingTimer') ?: (array_key_exists($side['lightingTimer'], $UNDERBED_LIGHTING_TIMES) ? $UNDERBED_LIGHTING_TIMES[$side['lightingTimer']] : $UNDERBED_LIGHTING_TIMES[DEFAULT_UNDERBED_LIGHTING_TIME]),
+                        ];
+
+                        // Timer possible values
+                        $states[] = [
+                            "component" => "lights",
+                            "capability" => "st.airConditionerFanMode",
+                            "attribute" => "supportedAcFanModes",
+                            "value" => array_values($UNDERBED_LIGHTING_TIMES),
+                        ];
+                    }
                 }
 
                 // Add the states to the response
@@ -1030,6 +1185,94 @@ function mapFootWarmingTempToNumber(string $tempStringValue)
 }
 
 /**
+ * Convert a string underbed light setting value to the numeric equivalent from $UNDERBED_LIGHTING_SETTINGS_MAP.
+ * @param string $settingStringValue The string setting value to look up in $UNDERBED_LIGHTING_SETTINGS_MAP
+ * @return int Value in $UNDERBED_LIGHTING_SETTINGS_MAP if present. The first value from $UNDERBED_LIGHTING_SETTINGS_MAP otherwise.
+ */
+function mapLightSettingToNumber(string $settingStringValue)
+{
+    global $UNDERBED_LIGHTING_SETTINGS_MAP;
+    if (array_key_exists($settingStringValue, $UNDERBED_LIGHTING_SETTINGS_MAP)) {
+        return $UNDERBED_LIGHTING_SETTINGS_MAP[$settingStringValue];
+    }
+    return reset($UNDERBED_LIGHTING_SETTINGS_MAP);
+}
+
+/**
+ * Convert a string underbed light brightness value to the numeric equivalent from $UNDERBED_LIGHTING_BRIGHTNESS_MAP.
+ * @param string $brightnessStringValue The string brightness value to look up in $UNDERBED_LIGHTING_BRIGHTNESS_MAP
+ * @return int Value in $UNDERBED_LIGHTING_BRIGHTNESS_MAP if present. The first value from $UNDERBED_LIGHTING_BRIGHTNESS_MAP otherwise.
+ */
+function mapLightBrightnessToNumber(string $brightnessStringValue)
+{
+    global $UNDERBED_LIGHTING_BRIGHTNESS_MAP;
+    if (array_key_exists($brightnessStringValue, $UNDERBED_LIGHTING_BRIGHTNESS_MAP)) {
+        return $UNDERBED_LIGHTING_BRIGHTNESS_MAP[$brightnessStringValue];
+    }
+    return reset($UNDERBED_LIGHTING_BRIGHTNESS_MAP);
+}
+
+/**
+ * Convert a string underbed light timer value to the numeric equivalent from $UNDERBED_LIGHT.
+ * @param string $timerStringValue The string timer value to look up in $UNDERBED_LIGHTING_TIMES_MAP
+ * @return int Value in $UNDERBED_LIGHTING_TIMES_MAP if present. The first value from $UNDERBED_LIGHTING_TIMES_MAP otherwise.
+ */
+function mapLightTimerToNumber(string $timerStringValue)
+{
+    global $UNDERBED_LIGHTING_TIMES_MAP;
+    if (array_key_exists($timerStringValue, $UNDERBED_LIGHTING_TIMES_MAP)) {
+        return $UNDERBED_LIGHTING_TIMES_MAP[$timerStringValue];
+    }
+    return reset($UNDERBED_LIGHTING_TIMES_MAP);
+}
+
+/**
+ * Input: An integer value (e.g., 0, 15, 30, 45, 60, 120, 180, or any value in between).
+ * Reference: The keys of $UNDERBED_LIGHTING_TIMES (which are numeric, e.g., 0, 15, 30, 45, 60, 120, 180).
+ * Behavior:
+ * If the input matches a key, return that key.
+ * If the input is between two keys, return the next highest key (the "ceiling").
+ * If the input is higher than the highest key, return the highest key.
+ * If the input is lower than the lowest key, return the lowest key (which is 0).
+ * Example:
+ * 
+ * Input: 179 → Output: 180
+ * Input: 121 → Output: 180
+ * Input: 120 → Output: 120
+ * Input: 61 → Output: 120
+ * Input: 0 → Output: 0
+ * @param int $timerValue
+ */
+function mapTimerValueToArrayOption(int $timerValue)
+{
+    global $UNDERBED_LIGHTING_TIMES;
+
+    // Get all keys and sort them numerically ascending
+    $keys = array_keys($UNDERBED_LIGHTING_TIMES);
+    sort($keys, SORT_NUMERIC);
+
+    // If value is less than or equal to the lowest key, return the lowest key
+    if ($timerValue <= $keys[0]) {
+        return $keys[0];
+    }
+
+    // If value is greater than or equal to the highest key, return the highest key
+    if ($timerValue >= end($keys)) {
+        return end($keys);
+    }
+
+    // Otherwise, find the smallest key >= timerValue
+    foreach ($keys as $key) {
+        if ($timerValue <= $key) {
+            return $key;
+        }
+    }
+
+    // Fallback (should not be reached)
+    return end($keys);
+}
+
+/**
  * Take an array (or associative array) and convert the values to lowercase, and
  * optionally remove whitespaces, as well.
  * @param array $arrayOfStrings An array or associative array of strings that will have values converted to lowercase
@@ -1090,9 +1333,20 @@ function getBedState($bedIds = []): array
         $sideFaves = $client->getBedFaves($bedId);
         $sidePresets = $client->getBedSidePresets($bedId);
         $foundationFeatures = $client->getFoundationFeatures($bedId); // Has <side>UnderbedLightPMW
+
         $foundationFootwarming = null;
         if ($foundationFeatures->hasFootWarming) {
             $foundationFootwarming = $client->getFoundationFootwarming($bedId);
+        }
+        $foundationLighting = null;
+        if ($foundationFeatures->hasUnderbedLight) {
+            $lightData = $client->getLight(bedId: $bedId);
+            $autoEnabled = $client->isUnderBedLightingAutoModeEnabled($bedId);
+            $foundationLighting = [
+                'setting' => $autoEnabled ? SLEEPYQPHP_LIGHTING_AUTO : $lightData->setting,
+                'timer' => $lightData->timer,
+                'brightness' => $foundationFeatures->rightUnderbedLightPMW,
+            ];
         }
         $data[$bedId] = [
             'id' => $bedId,
@@ -1109,9 +1363,16 @@ function getBedState($bedIds = []): array
                     $sleeperId = $sideStatus->sleeper->sleeperId;
                     if ($sideStatus) {
                         $data[$bedId]['sides'][$side]['sleepNumber'] = $sideStatus->sleepNumber;
+                        $data[$bedId]['sides'][$side]['isInBed'] = $sideStatus->isInBed;
                         $data[$bedId]['sides'][$side]['fave'] = $sideFaves[$side];
                         $data[$bedId]['sides'][$side]['footwarmingAvailable'] = $foundationFeatures->hasFootWarming;
                         $data[$bedId]['sides'][$side]['footwarmingMode'] = ($foundationFootwarming != null) ? mapModeToFootWarming($foundationFootwarming->sides[$side]) : FOOTWARM_TEMP_OFF; // Array with 'temp' and 'time' keys
+
+                        // Add Light info
+                        $data[$bedId]['sides'][$side]['lightingAvailable'] = $foundationFeatures->hasUnderbedLight;
+                        $data[$bedId]['sides'][$side]['lightingSetting'] = ($foundationLighting != null) ? $foundationLighting['setting'] : SleepyqPHP::LIGHT_SETTINGS_OFF;
+                        $data[$bedId]['sides'][$side]['lightingBrightness'] = ($foundationLighting != null) ? $foundationLighting['brightness'] : SleepyqPHP::LIGHT_BRIGHTNESS_OFF;
+                        $data[$bedId]['sides'][$side]['lightingTimer'] = ($foundationLighting != null) ? $foundationLighting['timer'] : SLEEPYQPHP_LIGHTING_TIME_OFF;
 
                         // Retrieve the sleeper info to get their sleep score
                         if ($sleeperId) {
@@ -1168,6 +1429,9 @@ function sendBedCommands(array $commands): array
         $keys = array_keys($command);
         $ids[] = $id = $command['id'];
         $side = $command['side'];
+        $component = $command['component'] ?? 'main';
+
+        //// MAIN COMPONENT COMMANDS ////
 
         // set the mode for the bed
         if (in_array('mode', $keys)) {
@@ -1180,8 +1444,29 @@ function sendBedCommands(array $commands): array
         if (in_array('fave', $keys)) {
             $client->setBedSideToFavorite($id, $side);
         }
+
+        //// FOOTWARMING COMPONENT COMMANDS ////
+
         if (in_array('temp', $keys) && in_array('time', $keys)) {
             $client->setFoundationFootwarming($side, $command['temp'], $command['time'], $id);
+        }
+
+        //// UNDERBED LIGHTING COMPONENT COMMANDS ////
+
+        // In this case we do a single "hybrid" command for all facets of lighting because it requires multiple API calls to coordinate
+        if (in_array('lightingAvailable', $keys)) {
+            // Auto mode means we set the manual setting to OFF but with the designated timer, then turn on auto mode
+            if ($command['lightingSetting'] == SLEEPYQPHP_LIGHTING_AUTO) {
+                $client->setLightSettingAndTimer(UNDERBED_LIGHTING_OFF, timer: $command['lightingTimer'], bedId: $id);
+                $client->enableOrDisableUnderBedLighting(true, $id);
+            }
+            // Manual mode means we disable auto mode, then set the manual mode and timer
+            else {
+                $client->enableOrDisableUnderBedLighting(false, $id);
+                $client->setLightSettingAndTimer($command['lightingSetting'], timer: $command['lightingTimer'], bedId: $id);
+            }
+            //  Set the brightness
+            $client->setLightBrightness($command['lightingBrightness'], $id);
         }
     }
     return $ids;
@@ -1674,20 +1959,40 @@ function getUsersWithSleepSettingsEnabled()
     return $db->raw($sql);
 }
 
+/**
+ * Get users that have sleep start and end times that are currently in the sleep window. The passed in users will be filtered to only those that are currently in the sleep window.
+ * @param array $usersSleepInfo
+ * @return void
+ */
 function filterUsersBySleepStartEndTime(array &$usersSleepInfo)
 {
-    $now = new DateTime();
-    logtext("Current time: " . $now->format('Y-m-d H:i:s'));
-
     foreach ($usersSleepInfo as $userId => $userSleepInfo) {
-        $userSleepStartTime = new DateTime($userSleepInfo[SLEEP_START_TIME], new DateTimeZone($userSleepInfo[TIMEZONE]));
-        $userSleepEndTime = new DateTime($userSleepInfo[SLEEP_END_TIME], new DateTimeZone($userSleepInfo[TIMEZONE]));
-        logtext("User $userId sleep start time: " . $userSleepStartTime->format('Y-m-d H:i:s'));
-        logtext("User $userId sleep end time: " . $userSleepEndTime->format('Y-m-d H:i:s'));
+        $timezone = new DateTimeZone($userSleepInfo[TIMEZONE]);
+        $now = new DateTime('now', $timezone);
+        $nowTime = $now->format('H:i');
 
-        if ($userSleepStartTime > $now || $userSleepEndTime < $now) {
-            logtext("User $userId sleep start time is in the future or end time is in the past. Removing from list.\n");
-            unset($usersSleepInfo[$userId]);
+        // Extract only the time part from the stored datetime strings
+        $startDT = new DateTime($userSleepInfo[SLEEP_START_TIME]);
+        $startDT->setTimezone($timezone);
+        $startTime = $startDT->format('H:i');
+        $endDT = new DateTime($userSleepInfo[SLEEP_END_TIME]);
+        $endDT->setTimezone($timezone);
+        $endTime = $endDT->format('H:i');
+
+        logtext("User $userId now: $nowTime, sleep start: $startTime, sleep end: $endTime");
+
+        if ($startTime < $endTime) {
+            // Sleep window does not cross midnight
+            if (!($nowTime >= $startTime && $nowTime < $endTime)) {
+                logtext("User $userId is NOT in sleep window (simple case). Removing from list.\n");
+                unset($usersSleepInfo[$userId]);
+            }
+        } else {
+            // Sleep window crosses midnight
+            if (!($nowTime >= $startTime || $nowTime < $endTime)) {
+                logtext("User $userId is NOT in sleep window (overnight case). Removing from list.\n");
+                unset($usersSleepInfo[$userId]);
+            }
         }
     }
 }

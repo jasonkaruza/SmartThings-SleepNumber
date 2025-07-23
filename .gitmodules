@@ -1,6 +1,8 @@
 [submodule "SleepyqPHP"]
 	path = SleepyqPHP
 	url = https://github.com/jasonkaruza/SleepyqPHP.git
+	branch = develop
 [submodule "oauth/oauth2-server-php"]
 	path = oauth/oauth2-server-php
 	url = https://github.com/jasonkaruza/oauth2-server-php.git
+	branch = main

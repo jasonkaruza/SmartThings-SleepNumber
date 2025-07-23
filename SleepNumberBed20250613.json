@@ -97,6 +97,12 @@
         "id": "lights",
         "capabilities": [
           {
+            "id": "presenceSensor",
+            "version": 1,
+            "optional": false,
+            "ephemeral": false
+          },
+          {
             "id": "mode",
             "version": 1,
             "optional": false,
@@ -199,10 +205,15 @@
         {
           "component": "main",
           "capability": "airQualitySensor",
-          "group": "Sleep Score",
           "version": 1,
-          "values": [],
-          "patch": []
+          "idx": 0,
+          "group": "Sleep Score",
+          "values": [
+            {
+              "label": "{{airQuality.value}}"
+            }
+          ],
+          "composite": false
         },
         {
           "component": "footwarming",
@@ -239,6 +250,85 @@
           "composite": false,
           "visibleCondition": {
             "component": "footwarming",
+            "capability": "presenceSensor",
+            "version": 1,
+            "value": "presence.value",
+            "operator": "EQUALS",
+            "operand": "present",
+            "isOffline": false
+          }
+        },
+        {
+          "component": "lights",
+          "capability": "presenceSensor",
+          "version": 1,
+          "idx": 0,
+          "group": "Lighting Available?",
+          "values": [
+            {
+              "key": "presence.value",
+              "alternatives": [
+                {
+                  "key": "present",
+                  "value": "Yes",
+                  "type": "active"
+                },
+                {
+                  "key": "not present",
+                  "value": "No",
+                  "type": "inactive"
+                }
+              ]
+            }
+          ],
+          "composite": false
+        },
+        {
+          "component": "lights",
+          "capability": "mode",
+          "version": 1,
+          "idx": 0,
+          "group": "Light",
+          "values": [],
+          "composite": false,
+          "visibleCondition": {
+            "component": "lights",
+            "capability": "presenceSensor",
+            "version": 1,
+            "value": "presence.value",
+            "operator": "EQUALS",
+            "operand": "present",
+            "isOffline": false
+          }
+        },
+        {
+          "component": "lights",
+          "capability": "laundryWasherSpinSpeed",
+          "version": 1,
+          "idx": 0,
+          "group": "Brightness",
+          "values": [],
+          "composite": false,
+          "visibleCondition": {
+            "component": "lights",
+            "capability": "presenceSensor",
+            "version": 1,
+            "value": "presence.value",
+            "operator": "EQUALS",
+            "operand": "present",
+            "isOffline": false
+          }
+        },
+        {
+          "component": "lights",
+          "capability": "airConditionerFanMode",
+          "version": 1,
+          "idx": 0,
+          "group": "Timer",
+          "values": [],
+          "composite": false,
+          "visibleCondition": {
+            "component": "lights",
             "capability": "presenceSensor",
             "version": 1,
             "value": "presence.value",
@@ -434,7 +524,7 @@
         "capability": "presenceSensor",
         "version": 1,
         "idx": 0,
-        "group": "In Bed?",
+        "label": "In Bed?",
         "values": [
           {
             "key": "presence.value",
@@ -461,7 +551,17 @@
         "capability": "airQualitySensor",
         "label": "Sleep Score",
         "version": 1,
-        "values": [],
+        "values": [
+          {
+            "key": "airQuality.value",
+            "label": "Sleep Score",
+            "range": [
+              0,
+              100
+            ],
+            "unit": "score"
+          }
+        ],
         "patch": [],
         "exclusion": []
       },
@@ -624,6 +724,123 @@
                 "type": "active"
               }
             ]
+          },
+          {
+            "op": "add",
+            "path": "/0/list/command/alternatives",
+            "value": [
+              {
+                "key": "Off",
+                "value": "Off",
+                "type": "inactive"
+              },
+              {
+                "key": "Low - 30 min",
+                "value": "Low - 30 min",
+                "type": "active"
+              },
+              {
+                "key": "Low - 1 hr",
+                "value": "Low - 1 hr",
+                "type": "active"
+              },
+              {
+                "key": "Low - 2 hrs",
+                "value": "Low - 2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 3 hrs",
+                "value": "Low - 3 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 4 hrs",
+                "value": "Low - 4 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 5 hrs",
+                "value": "Low - 5 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Low - 6 hrs",
+                "value": "Low - 6 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 30 min",
+                "value": "Medium - 30 min",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 1 hr",
+                "value": "Medium - 1 hr",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 2 hrs",
+                "value": "Medium - 2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 3 hrs",
+                "value": "Medium - 3 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 4 hrs",
+                "value": "Medium - 4 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 5 hrs",
+                "value": "Medium - 5 hrs",
+                "type": "active"
+              },
+              {
+                "key": "Medium - 6 hrs",
+                "value": "Medium - 6 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 30 min",
+                "value": "High - 30 min",
+                "type": "active"
+              },
+              {
+                "key": "High - 1 hr",
+                "value": "High - 1 hr",
+                "type": "active"
+              },
+              {
+                "key": "High - 2 hrs",
+                "value": "High - 2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 3 hrs",
+                "value": "High - 3 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 4 hrs",
+                "value": "High - 4 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 5 hrs",
+                "value": "High - 5 hrs",
+                "type": "active"
+              },
+              {
+                "key": "High - 6 hrs",
+                "value": "High - 6 hrs",
+                "type": "active"
+              }
+            ],
+            "label": "Footwarming"
           }
         ],
         "composite": false
@@ -632,22 +849,267 @@
         "component": "lights",
         "capability": "mode",
         "version": 1,
-        "values": [],
-        "patch": []
+        "visibleCondition": {
+          "capability": "presenceSensor",
+          "version": 1,
+          "component": "lights",
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present"
+        },
+        "idx": 0,
+        "values": [
+          {
+            "key": "mode.value",
+            "enabledValues": [
+              "Off",
+              "On",
+              "Auto"
+            ],
+            "label": "Light"
+          }
+        ],
+        "patch": [
+          {
+            "op": "add",
+            "path": "/0/list/state/alternatives",
+            "value": [
+              {
+                "key": "Off",
+                "value": "Off",
+                "type": "inactive"
+              },
+              {
+                "key": "On",
+                "value": "On",
+                "type": "active"
+              },
+              {
+                "key": "Auto",
+                "value": "Auto",
+                "type": "active"
+              }
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/0/list/command/alternatives",
+            "value": [
+              {
+                "key": "Off",
+                "value": "Off",
+                "type": "inactive"
+              },
+              {
+                "key": "On",
+                "value": "On",
+                "type": "active"
+              },
+              {
+                "key": "Auto",
+                "value": "Auto",
+                "type": "active"
+              }
+            ],
+            "label": "Light"
+          }
+        ]
       },
       {
         "component": "lights",
         "capability": "laundryWasherSpinSpeed",
         "version": 1,
-        "values": [],
-        "patch": []
+        "visibleCondition": {
+          "capability": "presenceSensor",
+          "version": 1,
+          "component": "lights",
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present"
+        },
+        "idx": 0,
+        "values": [
+          {
+            "key": "spinSpeed.value",
+            "enabledValues": [
+              "Off",
+              "Low",
+              "Medium",
+              "High"
+            ],
+            "label": "Brightness"
+          }
+        ],
+        "patch": [
+          {
+            "op": "add",
+            "path": "/0/list/state/alternatives",
+            "value": [
+              {
+                "key": "Off",
+                "value": "Off",
+                "type": "inactive"
+              },
+              {
+                "key": "Low",
+                "value": "Low",
+                "type": "active"
+              },
+              {
+                "key": "Medium",
+                "value": "Medium",
+                "type": "active"
+              },
+              {
+                "key": "High",
+                "value": "High",
+                "type": "active"
+              }
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/0/list/command/alternatives",
+            "value": [
+              {
+                "key": "Off",
+                "value": "Off",
+                "type": "inactive"
+              },
+              {
+                "key": "Low",
+                "value": "Low",
+                "type": "active"
+              },
+              {
+                "key": "Medium",
+                "value": "Medium",
+                "type": "active"
+              },
+              {
+                "key": "High",
+                "value": "High",
+                "type": "active"
+              }
+            ],
+            "label": "Brightness"
+          }
+        ]
       },
       {
         "component": "lights",
         "capability": "airConditionerFanMode",
         "version": 1,
-        "values": [],
-        "patch": []
+        "visibleCondition": {
+          "capability": "presenceSensor",
+          "version": 1,
+          "component": "lights",
+          "value": "presence.value",
+          "operator": "EQUALS",
+          "operand": "present"
+        },
+        "idx": 0,
+        "values": [
+          {
+            "key": "fanMode.value",
+            "enabledValues": [
+              "Off",
+              "15 min",
+              "30 min",
+              "45 min",
+              "1 hr",
+              "2 hrs",
+              "3 hrs"
+            ],
+            "label": "Timer"
+          }
+        ],
+        "patch": [
+          {
+            "op": "add",
+            "path": "/0/list/state/alternatives",
+            "value": [
+              {
+                "key": "Off",
+                "value": "Off",
+                "type": "inactive"
+              },
+              {
+                "key": "15 min",
+                "value": "15 min",
+                "type": "active"
+              },
+              {
+                "key": "30 min",
+                "value": "30 min",
+                "type": "active"
+              },
+              {
+                "key": "45 min",
+                "value": "45 min",
+                "type": "active"
+              },
+              {
+                "key": "1 hr",
+                "value": "1 hr",
+                "type": "active"
+              },
+              {
+                "key": "2 hrs",
+                "value": "2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "3 hrs",
+                "value": "3 hrs",
+                "type": "active"
+              }
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/0/list/command/alternatives",
+            "value": [
+              {
+                "key": "Off",
+                "value": "Off",
+                "type": "inactive"
+              },
+              {
+                "key": "15 min",
+                "value": "15 min",
+                "type": "active"
+              },
+              {
+                "key": "30 min",
+                "value": "30 min",
+                "type": "active"
+              },
+              {
+                "key": "45 min",
+                "value": "45 min",
+                "type": "active"
+              },
+              {
+                "key": "1 hr",
+                "value": "1 hr",
+                "type": "active"
+              },
+              {
+                "key": "2 hrs",
+                "value": "2 hrs",
+                "type": "active"
+              },
+              {
+                "key": "3 hrs",
+                "value": "3 hrs",
+                "type": "active"
+              }
+            ],
+            "label": "Timer"
+          }
+        ],
+        "composite": false
       }
     ],
     "automation": {
@@ -768,7 +1230,7 @@
           "capability": "presenceSensor",
           "version": 1,
           "idx": 0,
-          "group": "In Bed?",
+          "label": "In Bed?",
           "values": [
             {
               "key": "presence.value",
@@ -788,6 +1250,25 @@
             }
           ],
           "composite": false,
+          "patch": [],
+          "exclusion": []
+        },
+        {
+          "component": "main",
+          "capability": "airQualitySensor",
+          "label": "Sleep Score",
+          "version": 1,
+          "values": [
+            {
+              "key": "airQuality.value",
+              "label": "Sleep Score",
+              "range": [
+                0,
+                100
+              ],
+              "unit": "score"
+            }
+          ],
           "patch": [],
           "exclusion": []
         },
@@ -960,24 +1441,179 @@
           "component": "lights",
           "capability": "mode",
           "version": 1,
-          "values": [],
-          "patch": [],
+          "visibleCondition": {
+            "capability": "presenceSensor",
+            "version": 1,
+            "component": "lights",
+            "value": "presence.value",
+            "operator": "EQUALS",
+            "operand": "present"
+          },
+          "values": [
+            {
+              "key": "mode.value",
+              "label": "Light",
+              "enabledValues": [
+                "Off",
+                "On",
+                "Auto"
+              ]
+            }
+          ],
+          "patch": [
+            {
+              "label": "Light",
+              "op": "add",
+              "path": "/0/list/alternatives",
+              "value": [
+                {
+                  "key": "Off",
+                  "value": "Off",
+                  "type": "inactive"
+                },
+                {
+                  "key": "On",
+                  "value": "On",
+                  "type": "active"
+                },
+                {
+                  "key": "Auto",
+                  "value": "Auto",
+                  "type": "active"
+                }
+              ]
+            }
+          ],
           "exclusion": []
         },
         {
           "component": "lights",
           "capability": "laundryWasherSpinSpeed",
           "version": 1,
-          "values": [],
-          "patch": [],
+          "visibleCondition": {
+            "capability": "presenceSensor",
+            "version": 1,
+            "component": "lights",
+            "value": "presence.value",
+            "operator": "EQUALS",
+            "operand": "present"
+          },
+          "values": [
+            {
+              "key": "spinSpeed.value",
+              "label": "Brightness",
+              "enabledValues": [
+                "Off",
+                "Low",
+                "Medium",
+                "High"
+              ]
+            }
+          ],
+          "patch": [
+            {
+              "label": "Brightness",
+              "op": "add",
+              "path": "/0/list/alternatives",
+              "value": [
+                {
+                  "key": "Off",
+                  "value": "Off",
+                  "type": "inactive"
+                },
+                {
+                  "key": "Low",
+                  "value": "Low",
+                  "type": "active"
+                },
+                {
+                  "key": "Medium",
+                  "value": "Medium",
+                  "type": "active"
+                },
+                {
+                  "key": "High",
+                  "value": "High",
+                  "type": "active"
+                }
+              ]
+            }
+          ],
           "exclusion": []
         },
         {
           "component": "lights",
           "capability": "airConditionerFanMode",
           "version": 1,
-          "values": [],
-          "patch": [],
+          "visibleCondition": {
+            "capability": "presenceSensor",
+            "version": 1,
+            "component": "lights",
+            "value": "presence.value",
+            "operator": "EQUALS",
+            "operand": "present"
+          },
+          "idx": 0,
+          "label": "Timer",
+          "values": [
+            {
+              "key": "fanMode.value",
+              "label": "Timer",
+              "enabledValues": [
+                "Off",
+                "15 min",
+                "30 min",
+                "45 min",
+                "1 hr",
+                "2 hrs",
+                "3 hrs"
+              ]
+            }
+          ],
+          "patch": [
+            {
+              "label": "Timer",
+              "op": "add",
+              "path": "/0/list/alternatives",
+              "value": [
+                {
+                  "key": "Off",
+                  "value": "Off",
+                  "type": "inactive"
+                },
+                {
+                  "key": "15 min",
+                  "value": "15 min",
+                  "type": "active"
+                },
+                {
+                  "key": "30 min",
+                  "value": "30 min",
+                  "type": "active"
+                },
+                {
+                  "key": "45 min",
+                  "value": "45 min",
+                  "type": "active"
+                },
+                {
+                  "key": "1 hr",
+                  "value": "1 hr",
+                  "type": "active"
+                },
+                {
+                  "key": "2 hrs",
+                  "value": "2 hrs",
+                  "type": "active"
+                },
+                {
+                  "key": "3 hrs",
+                  "value": "3 hrs",
+                  "type": "active"
+                }
+              ]
+            }
+          ],
           "exclusion": []
         }
       ],
@@ -1105,7 +1741,7 @@
           "capability": "presenceSensor",
           "version": 1,
           "idx": 0,
-          "group": "In Bed?",
+          "label": "In Bed?",
           "values": [
             {
               "key": "presence.value",
@@ -1131,7 +1767,17 @@
           "capability": "airQualitySensor",
           "label": "Sleep Score",
           "version": 1,
-          "values": [],
+          "values": [
+            {
+              "key": "airQuality.value",
+              "label": "Sleep Score",
+              "range": [
+                0,
+                100
+              ],
+              "unit": "score"
+            }
+          ],
           "patch": [],
           "exclusion": []
         },
@@ -1304,24 +1950,179 @@
           "component": "lights",
           "capability": "mode",
           "version": 1,
-          "values": [],
-          "patch": [],
+          "visibleCondition": {
+            "capability": "presenceSensor",
+            "version": 1,
+            "component": "lights",
+            "value": "presence.value",
+            "operator": "EQUALS",
+            "operand": "present"
+          },
+          "values": [
+            {
+              "key": "mode.value",
+              "label": "Light",
+              "enabledValues": [
+                "Off",
+                "On",
+                "Auto"
+              ]
+            }
+          ],
+          "patch": [
+            {
+              "label": "Light",
+              "op": "add",
+              "path": "/0/list/alternatives",
+              "value": [
+                {
+                  "key": "Off",
+                  "value": "Off",
+                  "type": "inactive"
+                },
+                {
+                  "key": "On",
+                  "value": "On",
+                  "type": "active"
+                },
+                {
+                  "key": "Auto",
+                  "value": "Auto",
+                  "type": "active"
+                }
+              ]
+            }
+          ],
           "exclusion": []
         },
         {
           "component": "lights",
           "capability": "laundryWasherSpinSpeed",
           "version": 1,
-          "values": [],
-          "patch": [],
+          "visibleCondition": {
+            "capability": "presenceSensor",
+            "version": 1,
+            "component": "lights",
+            "value": "presence.value",
+            "operator": "EQUALS",
+            "operand": "present"
+          },
+          "values": [
+            {
+              "key": "spinSpeed.value",
+              "label": "Brightness",
+              "enabledValues": [
+                "Off",
+                "Low",
+                "Medium",
+                "High"
+              ]
+            }
+          ],
+          "patch": [
+            {
+              "label": "Brightness",
+              "op": "add",
+              "path": "/0/list/alternatives",
+              "value": [
+                {
+                  "key": "Off",
+                  "value": "Off",
+                  "type": "inactive"
+                },
+                {
+                  "key": "Low",
+                  "value": "Low",
+                  "type": "active"
+                },
+                {
+                  "key": "Medium",
+                  "value": "Medium",
+                  "type": "active"
+                },
+                {
+                  "key": "High",
+                  "value": "High",
+                  "type": "active"
+                }
+              ]
+            }
+          ],
           "exclusion": []
         },
         {
           "component": "lights",
           "capability": "airConditionerFanMode",
           "version": 1,
-          "values": [],
-          "patch": [],
+          "visibleCondition": {
+            "capability": "presenceSensor",
+            "version": 1,
+            "component": "lights",
+            "value": "presence.value",
+            "operator": "EQUALS",
+            "operand": "present"
+          },
+          "idx": 0,
+          "label": "Timer",
+          "values": [
+            {
+              "key": "setFanMode",
+              "label": "Timer",
+              "enabledValues": [
+                "Off",
+                "15 min",
+                "30 min",
+                "45 min",
+                "1 hr",
+                "2 hrs",
+                "3 hrs"
+              ]
+            }
+          ],
+          "patch": [
+            {
+              "label": "Timer",
+              "op": "add",
+              "path": "/0/list/alternatives",
+              "value": [
+                {
+                  "key": "Off",
+                  "value": "Off",
+                  "type": "inactive"
+                },
+                {
+                  "key": "15 min",
+                  "value": "15 min",
+                  "type": "active"
+                },
+                {
+                  "key": "30 min",
+                  "value": "30 min",
+                  "type": "active"
+                },
+                {
+                  "key": "45 min",
+                  "value": "45 min",
+                  "type": "active"
+                },
+                {
+                  "key": "1 hr",
+                  "value": "1 hr",
+                  "type": "active"
+                },
+                {
+                  "key": "2 hrs",
+                  "value": "2 hrs",
+                  "type": "active"
+                },
+                {
+                  "key": "3 hrs",
+                  "value": "3 hrs",
+                  "type": "active"
+                }
+              ]
+            }
+          ],
           "exclusion": []
         }
       ]

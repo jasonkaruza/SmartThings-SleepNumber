@@ -15,7 +15,21 @@
     },
     "migrationStatus": "NOT_MIGRATED",
     "status": "DEVELOPMENT",
-    "preferences": [],
+    "preferences": [
+      {
+        "preferenceId": "testPreference",
+        "name": "testPreference",
+        "title": "To Update Your Settings",
+        "description": "https://sn.computerjourney.com/oauth/user.php",
+        "required": false,
+        "explicit": false,
+        "preferenceType": "string",
+        "definition": {
+          "stringType": "text",
+          "default": "https://sn.computerjourney.com/oauth/user.php"
+        }
+      }
+    ],
     "components": [
       {
         "label": "Main",
@@ -558,11 +572,15 @@
             "range": [
               0,
               100
-            ],
-            "unit": "score"
+            ]
           }
         ],
-        "patch": [],
+        "patch": [
+          {
+            "op": "remove",
+            "path": "/0/slider/unit"
+          }
+        ],
         "exclusion": []
       },
       {
@@ -1265,11 +1283,15 @@
               "range": [
                 0,
                 100
-              ],
-              "unit": "score"
+              ]
             }
           ],
-          "patch": [],
+          "patch": [
+            {
+              "op": "remove",
+              "path": "/0/numberField/unit"
+            }
+          ],
           "exclusion": []
         },
         {
@@ -1774,11 +1796,15 @@
               "range": [
                 0,
                 100
-              ],
-              "unit": "score"
+              ]
             }
           ],
-          "patch": [],
+          "patch": [
+            {
+              "op": "remove",
+              "path": "/0/numberField/unit"
+            }
+          ],
           "exclusion": []
         },
         {

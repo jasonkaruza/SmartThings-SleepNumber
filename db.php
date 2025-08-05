@@ -1,9 +1,6 @@
 <?php
 global $DB;
 
-/**
- * Produced by Anthropic Claude
- */
 class Database
 {
     private $pdo;
@@ -33,6 +30,13 @@ class Database
      * @param array $data Associative array of column => value pairs
      * @return int|bool Last inserted ID or false on failure
      */
+    /**
+     * Insert a record into the specified table
+     * 
+     * @param string $table Table name
+     * @param array $data Associative array of column => value pairs
+     * @return int|bool Last inserted ID or false on failure
+     */
     public function insert($table, array $data)
     {
         try {
@@ -52,6 +56,50 @@ class Database
             return $this->pdo->lastInsertId();
         } catch (PDOException $e) {
             throw new Exception("Insert failed: " . $e->getMessage());
+        }
+    }
+
+
+    /**
+     * Insert or update a record in the specified table (upsert)
+     * 
+     * @param string $table Table name
+     * @param array $data Associative array of column => value pairs
+     * @return int|bool Last inserted ID or true if updated, false on failure
+     */
+    /**
+     * Insert or update a record in the specified table (upsert)
+     * 
+     * @param string $table Table name
+     * @param array $insertData Associative array of column => value pairs for insert
+     * @param array|null $updateData Associative array of column => value pairs for update (optional)
+     * @return int|bool Last inserted ID or true if updated, false on failure
+     */
+    public function upsert($table, array $insertData, array $updateData = null)
+    {
+        try {
+            $columns = array_keys($insertData);
+            $placeholders = array_fill(0, count($columns), '?');
+            $updateData = $updateData ?? $insertData;
+            $updateParts = array_map(function ($column) {
+                return "$column = ?";
+            }, array_keys($updateData));
+
+            $sql = sprintf(
+                "INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s",
+                $table,
+                implode(', ', $columns),
+                implode(', ', $placeholders),
+                implode(', ', $updateParts)
+            );
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(array_merge(array_values($insertData), array_values($updateData)));
+
+            // If a row was inserted, return lastInsertId; if updated, return true
+            return $this->pdo->lastInsertId() ?: true;
+        } catch (PDOException $e) {
+            throw new Exception("Upsert failed: " . $e->getMessage());
         }
     }
 

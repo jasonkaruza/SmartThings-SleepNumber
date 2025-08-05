@@ -124,7 +124,7 @@ CREATE TABLE `st_callback_token` (
 CREATE TABLE `st_user_settings` (
   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `user_id` varchar(500) NOT NULL,
-  `timezone` varchar(255) NOT NULL,
+  `timezone` varchar(255) UNIQUE DEFAULT NULL,
   `sleep_start_time` DATETIME DEFAULT NULL,
   `sleep_end_time` DATETIME DEFAULT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

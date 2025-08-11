@@ -923,29 +923,29 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                     ];
                 }
 
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.presenceSensor')) {
+                    // SmartThings presenceSensor indicating if the user is in bed or not
+                    $states[] = [
+                        "component" => "main",
+                        "capability" => "st.presenceSensor",
+                        "attribute" => "presence",
+                        "value" => extractOverride($overrides, $id, $side_name, 'isInBed') ?: ($side['isInBed'] ? IN_BED_PRESENT : IN_BED_NOT_PRESENT),
+                    ];
+                }
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.airQuality')) {
+                    // Bed SleepNumber value
+                    $states[] = [
+                        "component" => "main",
+                        "capability" => "st.airQualitySensor",
+                        "attribute" => "airQuality",
+                        "value" => extractOverride($overrides, $id, $side_name, 'score') ?: $side['sleepScore'],
+                    ];
+                }
+
                 // If we are testing a new device profile, add additional
                 // states to the response for the test device
                 if (isOrGetTestDevice($id . DEVICE_ID_DELIM . $side_name)) {
-
-                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.presenceSensor')) {
-                        // SmartThings presenceSensor indicating if the user is in bed or not
-                        $states[] = [
-                            "component" => "main",
-                            "capability" => "st.presenceSensor",
-                            "attribute" => "presence",
-                            "value" => extractOverride($overrides, $id, $side_name, 'isInBed') ?: ($side['isInBed'] ? IN_BED_PRESENT : IN_BED_NOT_PRESENT),
-                        ];
-                    }
-
-                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.airQuality')) {
-                        // Bed SleepNumber value
-                        $states[] = [
-                            "component" => "main",
-                            "capability" => "st.airQualitySensor",
-                            "attribute" => "airQuality",
-                            "value" => extractOverride($overrides, $id, $side_name, 'score') ?: $side['sleepScore'],
-                        ];
-                    }
                 }
 
                 /////// FOOTWARMING ///////
@@ -980,76 +980,76 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
 
                 /////// UNDERBED LIGHTING ///////
 
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.presenceSensor')) {
+                    // SmartThings presenceSensor indicating if the bed has underbed lighting available or not
+                    $states[] = [
+                        "component" => "lights",
+                        "capability" => "st.presenceSensor",
+                        "attribute" => "presence",
+                        "value" => extractOverride($overrides, $id, $side_name, 'lightingAvailable') ?: ($side['lightingAvailable'] ? UNDERBED_LIGHTING_AVAILABLE : UNDERBED_LIGHTING_NOT_AVAILABLE),
+                    ];
+                }
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.mode')) {
+                    // Light setting mode
+                    $states[] = [
+                        "component" => "lights",
+                        "capability" => "st.mode",
+                        "attribute" => "mode",
+                        // We use the extracted mode value if present, otherwise we use the text name for the setting if in our list. If not in the list, use the default
+                        "value" => extractOverride($overrides, $id, $side_name, 'lightingSetting') ?: (array_key_exists($side['lightingSetting'], $UNDERBED_LIGHTING_SETTINGS) ? $UNDERBED_LIGHTING_SETTINGS[$side['lightingSetting']] : $UNDERBED_LIGHTING_SETTINGS[DEFAULT_UNDERBED_LIGHTING_SETTING]),
+                    ];
+
+                    // Light mode possible values
+                    $states[] = [
+                        "component" => "lights",
+                        "capability" => "st.mode",
+                        "attribute" => "supportedModes",
+                        "value" => array_values($UNDERBED_LIGHTING_SETTINGS),
+                    ];
+                }
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.laundryWasherSpinSpeed')) {
+                    // Brightness
+                    $states[] = [
+                        "component" => "lights",
+                        "capability" => "st.laundryWasherSpinSpeed",
+                        "attribute" => "spinSpeed",
+                        // We use the extracted mode value if present, otherwise we use the text name for the setting if in our list. If not in the list, use the default
+                        "value" => extractOverride($overrides, $id, $side_name, 'lightingBrightness') ?: (array_key_exists($side['lightingBrightness'], $UNDERBED_LIGHTING_BRIGHTNESS) ? $UNDERBED_LIGHTING_BRIGHTNESS[$side['lightingBrightness']] : $UNDERBED_LIGHTING_BRIGHTNESS[DEFAULT_UNDERBED_LIGHTING_BRIGHTNESS]),
+                    ];
+
+                    // Brightness possible values
+                    $states[] = [
+                        "component" => "lights",
+                        "capability" => "st.laundryWasherSpinSpeed",
+                        "attribute" => "supportedSpinSpeeds",
+                        "value" => array_values($UNDERBED_LIGHTING_BRIGHTNESS),
+                    ];
+                }
+
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.airConditionerFanMode')) {
+                    // Timer (mapped to the nearest key in the UNDERBED_LIGHTING_TIMES array)
+                    $states[] = [
+                        "component" => "lights",
+                        "capability" => "st.airConditionerFanMode",
+                        "attribute" => "fanMode",
+                        // We use the extracted mode value if present, otherwise we use the text name for the setting if in our list. If not in the list, use the default
+                        "value" => extractOverride($overrides, $id, $side_name, 'lightingTimer') ?: (array_key_exists($side['lightingTimer'], $UNDERBED_LIGHTING_TIMES) ? $UNDERBED_LIGHTING_TIMES[$side['lightingTimer']] : $UNDERBED_LIGHTING_TIMES[DEFAULT_UNDERBED_LIGHTING_TIME]),
+                    ];
+
+                    // Timer possible values
+                    $states[] = [
+                        "component" => "lights",
+                        "capability" => "st.airConditionerFanMode",
+                        "attribute" => "supportedAcFanModes",
+                        "value" => array_values($UNDERBED_LIGHTING_TIMES),
+                    ];
+                }
+
                 // If we are testing a new device profile, add additional
                 // states to the response for the test device
                 if (isOrGetTestDevice($id . DEVICE_ID_DELIM . $side_name)) {
-
-                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.presenceSensor')) {
-                        // SmartThings presenceSensor indicating if the bed has underbed lighting available or not
-                        $states[] = [
-                            "component" => "lights",
-                            "capability" => "st.presenceSensor",
-                            "attribute" => "presence",
-                            "value" => extractOverride($overrides, $id, $side_name, 'lightingAvailable') ?: ($side['lightingAvailable'] ? UNDERBED_LIGHTING_AVAILABLE : UNDERBED_LIGHTING_NOT_AVAILABLE),
-                        ];
-                    }
-
-                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.mode')) {
-                        // Light setting mode
-                        $states[] = [
-                            "component" => "lights",
-                            "capability" => "st.mode",
-                            "attribute" => "mode",
-                            // We use the extracted mode value if present, otherwise we use the text name for the setting if in our list. If not in the list, use the default
-                            "value" => extractOverride($overrides, $id, $side_name, 'lightingSetting') ?: (array_key_exists($side['lightingSetting'], $UNDERBED_LIGHTING_SETTINGS) ? $UNDERBED_LIGHTING_SETTINGS[$side['lightingSetting']] : $UNDERBED_LIGHTING_SETTINGS[DEFAULT_UNDERBED_LIGHTING_SETTING]),
-                        ];
-
-                        // Light mode possible values
-                        $states[] = [
-                            "component" => "lights",
-                            "capability" => "st.mode",
-                            "attribute" => "supportedModes",
-                            "value" => array_values($UNDERBED_LIGHTING_SETTINGS),
-                        ];
-                    }
-
-                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.laundryWasherSpinSpeed')) {
-                        // Brightness
-                        $states[] = [
-                            "component" => "lights",
-                            "capability" => "st.laundryWasherSpinSpeed",
-                            "attribute" => "spinSpeed",
-                            // We use the extracted mode value if present, otherwise we use the text name for the setting if in our list. If not in the list, use the default
-                            "value" => extractOverride($overrides, $id, $side_name, 'lightingBrightness') ?: (array_key_exists($side['lightingBrightness'], $UNDERBED_LIGHTING_BRIGHTNESS) ? $UNDERBED_LIGHTING_BRIGHTNESS[$side['lightingBrightness']] : $UNDERBED_LIGHTING_BRIGHTNESS[DEFAULT_UNDERBED_LIGHTING_BRIGHTNESS]),
-                        ];
-
-                        // Brightness possible values
-                        $states[] = [
-                            "component" => "lights",
-                            "capability" => "st.laundryWasherSpinSpeed",
-                            "attribute" => "supportedSpinSpeeds",
-                            "value" => array_values($UNDERBED_LIGHTING_BRIGHTNESS),
-                        ];
-                    }
-
-                    if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'lights', 'st.airConditionerFanMode')) {
-                        // Timer (mapped to the nearest key in the UNDERBED_LIGHTING_TIMES array)
-                        $states[] = [
-                            "component" => "lights",
-                            "capability" => "st.airConditionerFanMode",
-                            "attribute" => "fanMode",
-                            // We use the extracted mode value if present, otherwise we use the text name for the setting if in our list. If not in the list, use the default
-                            "value" => extractOverride($overrides, $id, $side_name, 'lightingTimer') ?: (array_key_exists($side['lightingTimer'], $UNDERBED_LIGHTING_TIMES) ? $UNDERBED_LIGHTING_TIMES[$side['lightingTimer']] : $UNDERBED_LIGHTING_TIMES[DEFAULT_UNDERBED_LIGHTING_TIME]),
-                        ];
-
-                        // Timer possible values
-                        $states[] = [
-                            "component" => "lights",
-                            "capability" => "st.airConditionerFanMode",
-                            "attribute" => "supportedAcFanModes",
-                            "value" => array_values($UNDERBED_LIGHTING_TIMES),
-                        ];
-                    }
                 }
 
                 // Add the states to the response

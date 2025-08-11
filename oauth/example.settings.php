@@ -14,7 +14,8 @@ define('LOG_DIR', BASE_PATH . '/requestlogs'); // Required: This should match wh
 define('LOG_PATH', LOG_DIR . '/requestlogs.txt'); // Optional: Log file name. Consider making this hard to guess in the event that the file may be accessible via a URL
 ini_set("error_log", LOG_PATH); // Optional: Where to log errors
 
-// DB SETTINGS (SET ALL THREE)
+// DB SETTINGS (SET ALL)
+define('DB_HOST', 'localhost'); // Required: The host of the database. Update if necessary
 define('DB_NAME', '<update_this>'); // Required: The name of the database storing Oauth data
 define('DB_USER', '<update_this>'); // Required: The username for the database
 define('DB_PASS', '<update_this>'); // Required: The password for the database user
@@ -32,6 +33,10 @@ define('ST_CLIENT_SECRET', "<update_this>"); // Required: App Credentials Client
 
 // Device info https://smartthings.developer.samsung.com/workspace/projects/CPT-PARTNER/<id>/profile
 define('DEVICE_PROFILE_ID', '<update_this>'); // AKA deviceHandlerType 
+
+// Test Devices IDs/Bed IDs mapping to overriding Device Profile IDs for conditional development
+// E.g. ['-123:left' => '<device_profile_uuid>']
+$TEST_EXTERNAL_DEVICE_ID_DEVICE_PROFILE_MAP = [];
 
 // Specifies if this is a single-account SmartThings integration (true), or generic for multiple people to authenticate and have their credentials stored in the DB (false)
 define('SINGLE_ACCOUNT_CONFIG', true); // Optional: Defaults to true/single-account. Set to false to enable multi-account support.

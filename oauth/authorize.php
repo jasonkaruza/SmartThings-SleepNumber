@@ -68,7 +68,7 @@ h1 {
   // print the authorization code if the user has authorized your client
   $is_authorized = ($_POST['authorized'] === 'yes');
   $server->handleAuthorizeRequest($request, $response, $is_authorized);
-}
+} // End if SINGLE_ACCOUNT_CONFIG
 
 /**
  * Otherwise, if this is configured for multiple SleepNumber users to authenticate
@@ -311,7 +311,7 @@ else {
 
   // Associate token with user
   $server->handleAuthorizeRequest($request, $response, true, $email);
-}
+} // End else if not multi-account setup
 
 // print the authorization code if the user has authorized your client
 logtext("Handled authorization request");

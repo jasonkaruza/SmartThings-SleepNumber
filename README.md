@@ -36,68 +36,101 @@ The [capabilities](https://developer.smartthings.com/docs/devices/capabilities/c
 2. Initialize the [oauth2-server-php](https://github.com/jasonkaruza/oauth2-server-php) database by creating [all of the needed tables](https://bshaffer.github.io/oauth2-server-php-docs/cookbook/) and a user that will be able to connect to it from PHP.
   ```
   CREATE TABLE `oauth_access_tokens` (
-  `access_token` varchar(40) COLLATE utf8_unicode_ci NOT NULL,
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `user_id` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `access_token` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`access_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
   
   CREATE TABLE `oauth_authorization_codes` (
-  `authorization_code` varchar(40) COLLATE utf8_unicode_ci NOT NULL,
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `user_id` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `authorization_code` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `redirect_uri` varchar(2000) COLLATE utf8_unicode_ci DEFAULT NULL,
   `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   `id_token` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL,
   `code_challenge` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `code_challenge_method` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `code_challenge_method` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`authorization_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_clients` (
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `client_secret` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `client_secret` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `redirect_uri` varchar(2000) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `grant_types` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `grant_types` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `user_id` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`client_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_jwt` (
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `subject` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `subject` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `public_key` varchar(2000) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_refresh_tokens` (
-  `refresh_token` varchar(40) COLLATE utf8_unicode_ci NOT NULL,
-  `client_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `user_id` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `refresh_token` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
+  `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`refresh_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_scopes` (
-  `scope` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
+  `scope` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
   `is_default` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`scope`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
 
 CREATE TABLE `oauth_users` (
-  `username` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
+  `username` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
   `password` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
   `first_name` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
   `last_name` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `email` varchar(80) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `email` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `email_verified` tinyint(1) DEFAULT NULL,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
+
+CREATE TABLE `st_callback_code` (
+  `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `access_token` varchar(500) NOT NULL,
+  `code` varchar(500) UNIQUE NOT NULL,
+  `user_id` varchar(500) NOT NULL,
+  `token_uri` varchar(2000) NOT NULL,
+  `state_uri` varchar(2000) NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX user_id_key (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT="Stores the code for callbacks from grantCallbackAccess";
+
+CREATE TABLE `st_callback_token` (
+  `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `access_token` varchar(500) NOT NULL,
+  `refresh_token` varchar(500) NOT NULL,
+  `st_callback_code_id` bigint NOT NULL,
+  `expires_in` int(8) NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX st_callback_code_id_key (st_callback_code_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT="Stores access tokens from ST accessTokenResponses for callbacks";
+
+CREATE TABLE `st_user_settings` (
+  `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `user_id` varchar(500) NOT NULL,
+  `timezone` varchar(255) UNIQUE DEFAULT NULL,
+  `sleep_start_time` DATETIME DEFAULT NULL,
+  `sleep_end_time` DATETIME DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT NULL,
+  INDEX user_id_key (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT="Stores various user settings";
 ```
 3. Rename `oauth/example.settings.php` to `oauth/settings.php` and update all of the `Required` `define()`'d variables as indicated below...
 
@@ -154,6 +187,15 @@ Additionally, you will need to populate the following values in `oauth/settings.
 1. Once you have your SmartThings Client ID and Secret, insert them into the `oauth_clients` table along with the `redirect_uri`. The Client ID should match the value of `SN_CLIENT_ID` and Client Secret should match `SN_CLIENT_SECRET` `define()` values from `oauth/settings.php`
 2. You will also need to set an environment variable using the value for the `ENCRYPTION_ENV_VARIABLE_NAME` define (e.g. `SN_ENCRYPTION_PEPPER`) as the NAME of the environment variable, and set it to some other random string for extra security when encrypting/decrypting passwords in the database. Depending on if your code is running on Windows, Linux, MacOS, you'll need to set the environment variable differently and ensure that when the code is run on the server by a web request that the variable is correctly loaded for the code to use. Also keep in mind the length of the key that is used with the selected encryption cipher. E.g. with AES 256, the max length is 32 characters, so use half for the key in the settings file, and half for your pepper environment variable.
 
+# Setting up a cron job to update the app if device state changes
+SmartThings supports [`stateCallback`](https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#device-state-callback) interaction types that allow for updating the state of the device in SmartThings when updated externally in SleepNumber. An example would be when updating the presence of the sleeper in the bed if they get out of bed to then trigger a SmartThings routine (such as turning on the under-bed lighting). This has to be a cron job because there is no (known) SleepNumber subscription to changes that exists.
+
+At minimum, a cron job would need to run with `php sn.php --itype=stateCallback --iscron=true`, but if you defined an `ENCRYPTION_PEPPER` value as an environment variable, you may also need to reference the `php.ini` file like `php -c /path/to/the/php.ini /path/to/the/st/sn.php --itype=stateCallback --iscron=true`
+
+The cron job functionality is configured to only perform on users that have:
+1. A `sleep_start_time` and `sleep_end_time` that is not `NULL` in `st_user_settings`
+2. Execute the callbacks to SmartThings when the current time is between `sleep_start_time` and `sleep_end_time`
+
 # SmartThings App (Android) Device Adding
 1. In the SmartThings app, enable Developer Mode under Menu->Settings gear->Push and hold About SmartThings for 5 seconds->scroll down a bit and see Developer Mode toggle->toggle it on and restart the app.
 2. To add a test device go to Devices tab->+ in top right->Add device->Partner Devices->My Testing Devices->Select the device
@@ -162,6 +204,12 @@ Additionally, you will need to populate the following values in `oauth/settings.
 - When making updates to the Device Profile JSON via https://developer.smartthings.com/workspace/deviceprofiles/edit, re-add the Test Device through the SmartThings app, kill the app, and give it a few minutes for the updates to appear.
 - To change the DetailView label, put it INSIDE the `values` array's object.
 - If you encounter exceptions when trying to save a Refresh or Access token that has a `0` expiry value (it may evaluate to 1969-12-31 16:00:00), make sure that your MySQL database `my.cnf`/`my.ini` config does not have `NO_ZERO_IN_DATE,NO_ZERO_DATE,STRICT_TRANS_TABLES` in the `sql-mode`. You can check this by running `SHOW VARIABLES LIKE 'sql_mode';` from a MySQL client.
+- If iterating on the Device Profile and modifying components/capabilities, this is controlled through the `discoveryRequest` type's `deviceHandlerType` key, which specifies the device profile UUID to use in the SmartThings app. This is followed by a `stateRefreshRequest`, which can provide all of the capabilities for the new device profile. To help with this:
+  - Clone or create a new device profile in the Schema App project via https://developer.smartthings.com/device-profile-builder
+  - Set test external device IDs => the new device profile ID via `$TEST_EXTERNAL_DEVICE_ID_DEVICE_PROFILE_MAP` in settings to specify test devices for the new profile while all existing users continue to use the existing device profile
+  - Make conditional updates to `stateRefreshResponse`s to support the new device profile until ready to migrate everyone else over
+  - When ready, change the `DEVICE_PROFILE_ID` setting to the new device profile ID, and the next time users' apps perform a `discoveryRequest` they will get the updated `deviceHandlerType` value, and the subsequent `stateRefreshRequest` will get the new components/capabilities/states
+  - NOTE: All of this is possible because `commandRequest`s should ONLY return states for components/capabilities that are targeted by the request (thus, only return states for the device profile that was last returned by the `discoveryRequest` for that app)
 
 # Helpful links
 - https://api.smartthings.com/v1/presentation?manufacturerName=f2sv&presentationId=ST_#

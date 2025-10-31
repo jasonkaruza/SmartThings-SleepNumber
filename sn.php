@@ -397,7 +397,7 @@ $responseJson = json_encode($response);
 // Send the JSON response back to SmartThings
 header('Content-Type: application/json');
 print $responseJson;
-logtext("RESPONSE: " . json_encode($response, JSON_PRETTY_PRINT));
+logtext("$requestId $interactionType RESPONSE: " . json_encode($response, JSON_PRETTY_PRINT));
 
 /////////// HANDLERS //////////////
 /**
@@ -878,7 +878,13 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                     $side['preset'] = null;
                 }
 
-                $states = [];
+                $states = [[
+                    "component" => "main",
+                    "capability" => "st.healthCheck",
+                    "attribute" => "healthStatus",
+                    "value" => "online",
+                    "timestamp" => time(),
+                ]];
 
                 /////// MAIN ///////
 
@@ -1151,10 +1157,11 @@ function mapModeToBedPreset($modeName)
 function mapModeToFootWarming($arrayTimeAndTemp)
 {
     global $FOOTWARM_TEMPS, $FOOTWARM_TIMES;
+    logtext("mapModeToFootWarming inputs: " . print_r($arrayTimeAndTemp, true));
     if ($arrayTimeAndTemp['temp'] == SleepyqPHP::FOOTWARM_OFF) {
         return FOOTWARM_TEMP_OFF;
     }
-    return $FOOTWARM_TEMPS[$arrayTimeAndTemp['temp']] . FOOTWARM_MODE_DELIM . $FOOTWARM_TIMES[$arrayTimeAndTemp['time']];
+    return $FOOTWARM_TEMPS[$arrayTimeAndTemp['temp']] . FOOTWARM_MODE_DELIM . mapWarmingTimerValueToArrayOption($arrayTimeAndTemp['time']);
 }
 
 /**
@@ -1243,12 +1250,56 @@ function mapLightTimerToNumber(string $timerStringValue)
  * Input: 0 → Output: 0
  * @param int $timerValue
  */
-function mapTimerValueToArrayOption(int $timerValue)
+function mapLightingTimerValueToArrayOption(int $timerValue)
 {
     global $UNDERBED_LIGHTING_TIMES;
 
     // Get all keys and sort them numerically ascending
     $keys = array_keys($UNDERBED_LIGHTING_TIMES);
+    sort($keys, SORT_NUMERIC);
+
+    // If value is less than or equal to the lowest key, return the lowest key
+    if ($timerValue <= $keys[0]) {
+        return $keys[0];
+    }
+
+    // If value is greater than or equal to the highest key, return the highest key
+    if ($timerValue >= end($keys)) {
+        return end($keys);
+    }
+
+    // Otherwise, find the smallest key >= timerValue
+    foreach ($keys as $key) {
+        if ($timerValue <= $key) {
+            return $key;
+        }
+    }
+
+    // Fallback (should not be reached)
+    return end($keys);
+}
+
+/**
+ * Input: An integer value representing minutes (e.g., 1..360).
+ * Reference: The keys of $FOOTWARM_TIMES (e.g., 30, 60, 120, 180, 240, 300, 360).
+ * Behavior:
+ * - If the input matches a key, return that key.
+ * - If the input is between two keys, return the next highest key (the "ceiling").
+ * - If the input is higher than the highest key, return the highest key.
+ * - If the input is lower than the lowest key, return the lowest key.
+ * Example:
+ * - 59 → 60
+ * - 120 → 120
+ * - 121 → 180
+ * - 361 → 360
+ * @param int $timerValue
+ */
+function mapWarmingTimerValueToArrayOption(int $timerValue)
+{
+    global $FOOTWARM_TIMES;
+
+    // Get all keys and sort them numerically ascending
+    $keys = array_keys($FOOTWARM_TIMES);
     sort($keys, SORT_NUMERIC);
 
     // If value is less than or equal to the lowest key, return the lowest key
@@ -1332,6 +1383,11 @@ function getBedState($bedIds = []): array
     foreach ($bedIds as $bedId) {
         $sideFaves = $client->getBedFaves($bedId);
         $sidePresets = $client->getBedSidePresets($bedId);
+        foreach ($sidePresets as $side => $preset) {
+            if ($preset['preset'] === null) {
+                unset($sidePresets[$side]);
+            }
+        }
         $foundationFeatures = $client->getFoundationFeatures($bedId); // Has <side>UnderbedLightPMW
 
         $foundationFootwarming = null;
@@ -1372,7 +1428,9 @@ function getBedState($bedIds = []): array
                         $data[$bedId]['sides'][$side]['lightingAvailable'] = $foundationFeatures->hasUnderbedLight;
                         $data[$bedId]['sides'][$side]['lightingSetting'] = ($foundationLighting != null) ? $foundationLighting['setting'] : SleepyqPHP::LIGHT_SETTINGS_OFF;
                         $data[$bedId]['sides'][$side]['lightingBrightness'] = ($foundationLighting != null) ? $foundationLighting['brightness'] : SleepyqPHP::LIGHT_BRIGHTNESS_OFF;
-                        $data[$bedId]['sides'][$side]['lightingTimer'] = ($foundationLighting != null) ? $foundationLighting['timer'] : SLEEPYQPHP_LIGHTING_TIME_OFF;
+                        $data[$bedId]['sides'][$side]['lightingTimer'] = ($foundationLighting != null && is_int(
+                            $foundationLighting['timer']
+                        )) ? mapLightingTimerValueToArrayOption($foundationLighting['timer']) : SLEEPYQPHP_LIGHTING_TIME_OFF;
 
                         // Retrieve the sleeper info to get their sleep score
                         if ($sleeperId) {

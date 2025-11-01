@@ -838,6 +838,7 @@ function commandRequest($reqId, $auth, $devices)
     foreach ($devicesSetToFave as $bedId => $sides) {
         foreach ($sides as $side) {
             $overrides[$bedId][$side]['number'] = $beds[$bedId]['sides'][$side]['fave'];
+            $overrides[$bedId][$side]['mode'] = 'Favorite';
         }
     }
     parseBedState($beds, $output, $idsAndSides, $overrides, $bedSideComponentCapabilityFilters);
@@ -871,6 +872,16 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
     foreach ($beds as $id => $bed) {
         // Iterate through each side
         foreach ($bed['sides'] as $side_name => $side) {
+            $currentMode = array_key_exists('preset', $side) ? $side['preset'] : null;
+            $currentNumber = array_key_exists('sleepNumber', $side) ? $side['sleepNumber'] : null;
+
+            // Indicates if the side's favorite state is being set
+            $favoriteSwitchSet = false;
+
+            // Indicates if the favorite switch state needs updating
+            $favoriteSwitchNeedsUpdate = false;
+            $newMode = $newNumber = null;
+
             // If one of the IDs sought, add it to the response
             if (array_key_exists($id, $idsAndSides) && array_key_exists($side_name, $idsAndSides[$id])) {
                 // If no foundation, default preset to null
@@ -889,6 +900,38 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                 /////// MAIN ///////
 
                 // Add various states to the states array
+                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.switch')) {
+                    // Switch to indicate if in Favorite configuration, or not
+                    $states[] = [
+                        "component" => "main",
+                        "capability" => "st.switch",
+                        "attribute" => "switch",
+                        "value" => ($is_fave = extractOverride($overrides, $id, $side_name, 'fave') ?: ((($currentMode == FAVORITE && array_key_exists('fave', $side) && $side['sleepNumber'] == $side['fave']))
+                            ? SWITCH_ON : SWITCH_OFF))
+                    ];
+                    $favoriteSwitchSet = true;
+
+                    // If so, we will also provide the foundation mode and level values
+                    // as states in the response to reflect the changes made through
+                    // the single switch button value.
+                    if ($is_fave == SWITCH_ON) {
+                        // Foundation preset values
+                        $states[] = [
+                            "component" => "main",
+                            "capability" => "st.airConditionerMode",
+                            "attribute" => "airConditionerMode",
+                            "value" => 'Favorite',
+                        ];
+                        // Bed SleepNumber value
+                        $states[] = [
+                            "component" => "main",
+                            "capability" => "st.switchLevel",
+                            "attribute" => "level",
+                            "value" => extractOverride($overrides, $id, $side_name, 'number') ?: $side['sleepNumber'],
+                        ];
+                    }
+                }
+
                 if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.airConditionerMode')) {
                     // Foundation current preset mode
                     $states[] = [
@@ -896,7 +939,7 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                         "capability" => "st.airConditionerMode",
                         "attribute" => "airConditionerMode",
                         // We use the extracted mode value if present, otherwise we use the text name for the bed preset if in our list. If not in the list, use the default
-                        "value" => extractOverride($overrides, $id, $side_name, 'mode') ?: (array_key_exists($side['preset'], $BED_PRESETS) ? $BED_PRESETS[$side['preset']] : $BED_PRESETS[DEFAULT_PRESET]),
+                        "value" => $newMode = (extractOverride($overrides, $id, $side_name, 'mode') ?: (array_key_exists($side['preset'], $BED_PRESETS) ? $BED_PRESETS[$side['preset']] : $BED_PRESETS[DEFAULT_PRESET])),
                     ];
 
                     // Foundation preset values
@@ -906,6 +949,8 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                         "attribute" => "supportedAcModes",
                         "value" => array_values($BED_PRESETS),
                     ];
+
+                    $favoriteSwitchNeedsUpdate = true;
                 }
 
                 if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.switchLevel')) {
@@ -914,19 +959,10 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                         "component" => "main",
                         "capability" => "st.switchLevel",
                         "attribute" => "level",
-                        "value" => extractOverride($overrides, $id, $side_name, 'number') ?: $side['sleepNumber'],
+                        "value" => $newNumber = (extractOverride($overrides, $id, $side_name, 'number') ?: $side['sleepNumber']),
                     ];
-                }
 
-                if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.switch')) {
-                    // Switch to indicate if in Favorite configuration, or not
-                    $states[] = [
-                        "component" => "main",
-                        "capability" => "st.switch",
-                        "attribute" => "switch",
-                        "value" => extractOverride($overrides, $id, $side_name, 'fave') ?: ((($side['preset'] == FAVORITE) && ($side['sleepNumber'] == $side['fave']))
-                            ? SWITCH_ON : SWITCH_OFF)
-                    ];
+                    $favoriteSwitchNeedsUpdate = true;
                 }
 
                 if (!$bedSideComponentCapabilityFilters || extractOverride($bedSideComponentCapabilityFilters, $id, $side_name, 'main', 'st.presenceSensor')) {
@@ -1056,6 +1092,20 @@ function parseBedState($beds, &$output, $idsAndSides, $overrides = [], $bedSideC
                 // If we are testing a new device profile, add additional
                 // states to the response for the test device
                 if (isOrGetTestDevice($id . DEVICE_ID_DELIM . $side_name)) {
+                }
+
+                // If the bed preset/mode or sleep number/level values were changed
+                // we need to ensure the favorite switch state matches. This doesn't
+                // apply if the switch was set in a commandRequest
+                if ($favoriteSwitchNeedsUpdate && !$favoriteSwitchSet) {
+                    $states[] = [
+                        "component" => "main",
+                        "capability" => "st.switch",
+                        "attribute" => "switch",
+                        "value" => (($newMode == $BED_PRESETS[FAVORITE] || ($currentMode == FAVORITE && $newMode == null)) &&
+                            (array_key_exists('fave', $side) && ($newNumber == $side['fave'] || ($currentNumber == $side['fave'] && $newNumber == null))))
+                            ? SWITCH_ON : SWITCH_OFF
+                    ];
                 }
 
                 // Add the states to the response

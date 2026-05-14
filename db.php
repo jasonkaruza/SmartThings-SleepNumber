@@ -75,7 +75,7 @@ class Database
      * @param array|null $updateData Associative array of column => value pairs for update (optional)
      * @return int|bool Last inserted ID or true if updated, false on failure
      */
-    public function upsert($table, array $insertData, array $updateData = null)
+    public function upsert($table, array $insertData, ?array $updateData = null)
     {
         try {
             $columns = array_keys($insertData);
@@ -184,7 +184,7 @@ class Database
     public function select(
         $table,
         array $columns = ['*'],
-        array $where = null,
+        ?array $where = null,
         $orderBy = null,
         $limit = null,
         $offset = null,

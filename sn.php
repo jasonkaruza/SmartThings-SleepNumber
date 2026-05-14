@@ -369,7 +369,7 @@ if (array_key_exists(INTERACTION_TYPE, $headers)) {
             $response = commandRequest($requestId, $authentication, $devices);
             break;
         case DISCOVERY_REQUEST:
-            $response = discoveryRequest($requestId, $authentication);
+            $response = discoveryRequest($authentication, $requestId);
             break;
         case GRANT_CALLBACK_ACCESS:
             $response = grantCallbackAccess($authentication, $object);
@@ -418,7 +418,7 @@ logtext("$requestId $interactionType RESPONSE: " . json_encode($response, JSON_P
  *        )
  * )
  */
-function discoveryRequest(string $reqId = null, array $auth)
+function discoveryRequest(array $auth, ?string $reqId = null)
 {
     $beds = getBeds(false);
 
@@ -1397,7 +1397,7 @@ function toLc(array $arrayOfStrings, bool $stripSpaces = true): array
 /**
  * Get Beds
  */
-function getBeds($withFoundationFeatures = false, string $userId = null): array
+function getBeds($withFoundationFeatures = false, ?string $userId = null): array
 {
     $client = getClient($userId);
     $beds = $client->beds($withFoundationFeatures);
@@ -1586,7 +1586,7 @@ function sendBedCommands(array $commands): array
  * @param string $userId Optional. If provided, user this user ID for lookup
  * @return SleepyqPHP object
  */
-function getClient(string $userId = null): SleepyqPHP
+function getClient(?string $userId = null): SleepyqPHP
 {
     global $sleepyq, $authentication, $server;
 
@@ -1640,7 +1640,7 @@ function getClient(string $userId = null): SleepyqPHP
  * @param mixed $content
  * @return void
  */
-function httpError(int $code = 400, string $content = null)
+function httpError(int $code = 400, ?string $content = null)
 {
     http_response_code($code);
     if ($content) {
@@ -1718,7 +1718,7 @@ function getAccessTokenByCode(array $codeRow): string|null
  * @param string $code The code to use for making the request. This could be a code from ST_CALLBACK_CODE, or a refresh token provided previously. If not provided, the code will be looked up by the $codeId from the ST_CALLBACK_CODE table
  * @return string|null The access token retrieved or null on failure
  */
-function makeAccessTokenRequest(string $tokenUri, int $codeId, string $code = null): string|null
+function makeAccessTokenRequest(string $tokenUri, int $codeId, ?string $code = null): string|null
 {
     /** 
      * https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
@@ -1797,7 +1797,7 @@ function makeAccessTokenRequest(string $tokenUri, int $codeId, string $code = nu
  * callback request to the SmartThings API.
  * @param array $userIds An optional array of user IDs to perform the callbacks for. If not provided, all users will be used.
  */
-function performStateCallbacks(array $userIds = null)
+function performStateCallbacks(?array $userIds = null)
 {
     // Get the latest codes for each user
     $codeRows = getLatestUserCodes($userIds);
@@ -2009,7 +2009,7 @@ function insertCallbackToken(string $accessToken, string $refreshToken, int $cod
  * @param string $specificField Defaults to null
  * @return mixed Either associative array for the row or a single field value
  */
-function getCodeById(int $codeId, string $specificField = null)
+function getCodeById(int $codeId, ?string $specificField = null)
 {
     $db = getDb();
     return $db->getRowOrFieldById(ST_CALLBACK_CODE, $codeId, $specificField);
@@ -2021,7 +2021,7 @@ function getCodeById(int $codeId, string $specificField = null)
  * @param string $specificField Defaults to null
  * @return mixed Either associative array for the row or a single field value
  */
-function getCodeByUserId(string $userId, string $specificField = null)
+function getCodeByUserId(string $userId, ?string $specificField = null)
 {
     $db = getDb();
     return $db->getRowOrFieldByField(ST_CALLBACK_CODE, USER_ID, $userId, $specificField);
@@ -2034,7 +2034,7 @@ function getCodeByUserId(string $userId, string $specificField = null)
  * @param string $specificField Defaults to null
  * @return mixed Either associative array for the row or a single field value
  */
-function getTokenByCodeId(int $codeId, string $specificField = null): mixed
+function getTokenByCodeId(int $codeId, ?string $specificField = null): mixed
 {
     $db = getDb();
     return $db->getRowOrFieldByField(ST_CALLBACK_TOKEN, ST_CALLBACK_CODE_ID, $codeId, $specificField);
@@ -2045,7 +2045,7 @@ function getTokenByCodeId(int $codeId, string $specificField = null): mixed
  * @param array $userIds An optional array of user IDs to filter by
  * @return array The latest callback codes for each user
  */
-function getLatestUserCodes(array $userIds = null)
+function getLatestUserCodes(?array $userIds = null)
 {
     $userIdStr = '';
     if ($userIds) {

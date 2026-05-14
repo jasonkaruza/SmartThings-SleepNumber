@@ -1,5 +1,6 @@
 oauth/settings.php
 .vscode
 .git
+.claude/
 cookie/
 requestlogs/

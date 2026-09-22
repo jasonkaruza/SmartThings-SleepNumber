@@ -8,7 +8,7 @@ $server->addGrantType(new OAuth2\GrantType\RefreshToken($storage), array(
     'allow_implicit' => true,
     'unset_refresh_token_after_use' => false,
     'always_issue_new_refresh_token' => false, // the refresh token grant request will have a "refresh_token" field, with a new refresh token on each request
-    'refresh_token_lifetime' => 0, // the refresh tokens now last 28 days vs 1209600 (14-days) vs 2419200 (28 days)
+    'refresh_token_lifetime' => 0, // 0 means the refresh token never expires. It is stored as OAuth2\Storage\Pdo::NEVER_EXPIRES (2999-12-31 23:59:59), since a 0 expiry would otherwise be written as a 1969 date that MySQL rejects. Set to a seconds value to expire instead, e.g. 1209600 (14 days) or 2419200 (28 days).
 ));
 
 // Handle a request for an OAuth2.0 Access Token and send the response to the client

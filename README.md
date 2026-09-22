@@ -39,7 +39,7 @@ The [capabilities](https://developer.smartthings.com/docs/devices/capabilities/c
   `access_token` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
   `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
   `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `expires` datetime NOT NULL,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`access_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
@@ -49,7 +49,7 @@ The [capabilities](https://developer.smartthings.com/docs/devices/capabilities/c
   `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
   `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
   `redirect_uri` varchar(2000) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `expires` datetime NOT NULL,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   `id_token` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL,
   `code_challenge` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE `oauth_refresh_tokens` (
   `refresh_token` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
   `client_id` varchar(500) COLLATE utf8_unicode_ci NOT NULL,
   `user_id` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `expires` datetime NOT NULL,
   `scope` varchar(4000) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`refresh_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
@@ -203,7 +203,19 @@ The cron job functionality is configured to only perform on users that have:
 # Other Tips and Troubleshooting
 - When making updates to the Device Profile JSON via https://developer.smartthings.com/workspace/deviceprofiles/edit, re-add the Test Device through the SmartThings app, kill the app, and give it a few minutes for the updates to appear.
 - To change the DetailView label, put it INSIDE the `values` array's object.
-- If you encounter exceptions when trying to save a Refresh or Access token that has a `0` expiry value (it may evaluate to 1969-12-31 16:00:00), make sure that your MySQL database `my.cnf`/`my.ini` config does not have `NO_ZERO_IN_DATE,NO_ZERO_DATE,STRICT_TRANS_TABLES` in the `sql-mode`. You can check this by running `SHOW VARIABLES LIKE 'sql_mode';` from a MySQL client.
+- The `expires` columns on the `oauth_*` tables are `DATETIME`, **not** `TIMESTAMP`. This matters: `refresh_token_lifetime` is set to `0` (never expires), which the oauth2-server-php library passes down as an expiry of `0`. Formatted with `date()` in a timezone west of UTC that becomes `1969-12-31 16:00:00`, which falls below the `TIMESTAMP` floor of `1970-01-01 00:00:01` UTC. On MySQL 5.7+/8.0 with `STRICT_TRANS_TABLES,NO_ZERO_DATE` in the `sql-mode` (the default on MySQL 8), that value is rejected with `Incorrect datetime value ... for column 'expires'` (error 1292) instead of being silently coerced to `0000-00-00 00:00:00`, and the token request fails with an uncaught `PDOException`. The symptom is that a user completes the SmartThings and SleepNumber logins but ends up with no device and nothing under Linked Services.
+  - `DATETIME` spans years 1000-9999, so it avoids both that floor and the `TIMESTAMP` year-2038 ceiling. The forked library stores a never-expiring refresh token as `2999-12-31 23:59:59` (`OAuth2\Storage\Pdo::NEVER_EXPIRES`), which reads back through `strtotime()` as a far-future timestamp.
+  - Do **not** work around this by removing `NO_ZERO_IN_DATE,NO_ZERO_DATE,STRICT_TRANS_TABLES` from your `sql-mode`. Strict mode is fully supported; weakening it just restores the silent coercion that hid the problem. You can check the current mode with `SHOW VARIABLES LIKE 'sql_mode';` from a MySQL client.
+  - If you are upgrading an older installation whose columns are still `TIMESTAMP`, back up first, then backfill any legacy zero dates **before** altering the column - the `ALTER` itself fails under strict mode while `0000-00-00 00:00:00` rows are present:
+    ```sql
+    SET SESSION sql_mode = 'NO_ZERO_DATE';
+    UPDATE oauth_refresh_tokens SET expires = '2038-01-01 00:00:00' WHERE expires = 0;
+    ALTER TABLE oauth_refresh_tokens      MODIFY expires DATETIME NOT NULL;
+    ALTER TABLE oauth_access_tokens       MODIFY expires DATETIME NOT NULL;
+    ALTER TABLE oauth_authorization_codes MODIFY expires DATETIME NOT NULL;
+    UPDATE oauth_refresh_tokens SET expires = '2999-12-31 23:59:59' WHERE expires = '2038-01-01 00:00:00';
+    ```
+  - Dropping `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP` from these columns is intentional. The library always sets `expires` explicitly, and `ON UPDATE CURRENT_TIMESTAMP` would silently reset a token's expiry on any `UPDATE` that omitted the column.
 - If iterating on the Device Profile and modifying components/capabilities, this is controlled through the `discoveryRequest` type's `deviceHandlerType` key, which specifies the device profile UUID to use in the SmartThings app. This is followed by a `stateRefreshRequest`, which can provide all of the capabilities for the new device profile. To help with this:
   - Clone or create a new device profile in the Schema App project via https://developer.smartthings.com/device-profile-builder
   - Set test external device IDs => the new device profile ID via `$TEST_EXTERNAL_DEVICE_ID_DEVICE_PROFILE_MAP` in settings to specify test devices for the new profile while all existing users continue to use the existing device profile

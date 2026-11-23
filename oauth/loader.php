@@ -23,6 +23,8 @@ function logtext($text, $newlines = true)
     // Sanitize sensitive fields from logs
     $sanitizeFields = [
         'password',
+        'HTTP_AUTHORIZATION',
+        'REDIRECT_HTTP_AUTHORIZATION',
     ];
     foreach ($sanitizeFields as $field) {
         $text = preg_replace("/\[$field\] => .+?\n/", "[$field] => ***\n", $text);
@@ -31,6 +33,9 @@ function logtext($text, $newlines = true)
         SN_CLIENT_ID,
         SN_CLIENT_SECRET
     ];
+    if (defined('ST_CLIENT_SECRET') && strlen(ST_CLIENT_SECRET)) {
+        $otherFields[] = ST_CLIENT_SECRET;
+    }
     if (strlen(ENCRYPTION_PEPPER)) {
         $otherFields[] = ENCRYPTION_PEPPER;
     }

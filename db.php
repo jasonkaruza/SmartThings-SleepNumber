@@ -227,8 +227,9 @@ class Database
 
     public function getRowOrFieldById($table, $id, $specificField = null): mixed
     {
-        $row = $this->select($table, where: [ID => $id]);
+        $row = $this->select($table, where: [ID => $id], limit: 1);
         if ($row) {
+            $row = $row[0];
             if ($specificField && array_key_exists($specificField, $row)) {
                 return $row[$specificField];
             }

@@ -33,6 +33,8 @@ define('INTEGRATION_DELETED', 'integrationDeleted');
 define('INTERACTION_RESULT', 'interactionResult');
 define('INTERACTION_TYPE', 'interactionType');
 define('OAUTH_TOKEN', 'oauthToken');
+define('REFRESH_ACCESS_TOKENS', 'refreshAccessTokens');
+define('REFRESH_TOKEN_GRANT', 'refresh_token');
 define('REQUEST_ID', 'requestId');
 define('STATE_CALLBACK', 'stateCallback');
 define('STATE_REFRESH_REQUEST', 'stateRefreshRequest');
@@ -282,6 +284,8 @@ else {
 
         // If a cron job
         if (array_key_exists('iscron', $options)) {
+            // Lets httpError() throw instead of exiting, so one user's failure doesn't stop the run
+            define('IS_CRON', true);
             $cronStart = date('Y-m-d H:i:s');
             logtext("###$cronStart CRON JOB STARTED FOR ITYPE $iType");
             switch ($iType) {
@@ -1642,13 +1646,22 @@ function getClient(?string $userId = null): SleepyqPHP
  */
 function httpError(int $code = 400, ?string $content = null)
 {
+    logtext("HTTP ERROR $code: $content");
+    // During a cron run there is no client to respond to, so let the caller recover
+    if (defined('IS_CRON')) {
+        throw new HttpErrorException($content ?? '', $code);
+    }
     http_response_code($code);
     if ($content) {
         print $content;
     }
-    logtext("HTTP ERROR $code: $content");
     exit;
 }
+
+/**
+ * Thrown by httpError() during a cron run instead of exiting
+ */
+class HttpErrorException extends Exception {}
 
 /**
  * Generate a UUIDv4 string
@@ -1689,7 +1702,7 @@ function getAccessTokenByCode(array $codeRow): string|null
                 logtext("The latest token has expired: {$tokenRow[EXPIRES_AT]} >= now");
                 // The latest token has expired, so we need to get a new one using the refresh token
                 $refreshToken = $tokenRow[REFRESH_TOKEN];
-                $accessCode = makeAccessTokenRequest($tokenUri, $codeId, $refreshToken);
+                $accessCode = makeAccessTokenRequest($tokenUri, $codeId, refreshToken: $refreshToken);
             } else {
                 logtext("The latest token ID {$tokenRow[ID]} is still valid");
                 // The latest token is still valid, so just return it
@@ -1715,10 +1728,11 @@ function getAccessTokenByCode(array $codeRow): string|null
  * If the access token has expired, use the provided refreshToken to request a new access token at the oauthToken URL used previously.
  * @param string $tokenUri The URL to call to get the token
  * @param int $codeId The ID of the code in the ST_CALLBACK_CODE table associated with this request
- * @param string $code The code to use for making the request. This could be a code from ST_CALLBACK_CODE, or a refresh token provided previously. If not provided, the code will be looked up by the $codeId from the ST_CALLBACK_CODE table
+ * @param string $code The code from ST_CALLBACK_CODE to exchange for tokens. If not provided, the code will be looked up by the $codeId from the ST_CALLBACK_CODE table
+ * @param string $refreshToken A refresh token provided previously. If provided, a refreshAccessTokens request is made instead of exchanging a code
  * @return string|null The access token retrieved or null on failure
  */
-function makeAccessTokenRequest(string $tokenUri, int $codeId, ?string $code = null): string|null
+function makeAccessTokenRequest(string $tokenUri, int $codeId, ?string $code = null, ?string $refreshToken = null): string|null
 {
     /** 
      * https://developer.smartthings.com/docs/devices/cloud-connected/interaction-types#reciprocal-access-token
@@ -1737,24 +1751,37 @@ function makeAccessTokenRequest(string $tokenUri, int $codeId, ?string $code = n
      *     "clientSecret": "client secret given to partner in dev-workspace during app creation"
      * }
      * }
+     * Refreshing uses "interactionType": "refreshAccessTokens" with
+     * "grantType": "refresh_token" and "refreshToken" in place of "code".
      */
-    // If the code wasn't provided, look it up in the database
-    if (!$code) {
-        $code = getCodeById($codeId, CODE);
+    if ($refreshToken) {
+        $interactionType = REFRESH_ACCESS_TOKENS;
+        $grant = [
+            GRANT_TYPE => REFRESH_TOKEN_GRANT,
+            REFRESHTOKEN => $refreshToken,
+        ];
+    } else {
+        // If the code wasn't provided, look it up in the database
         if (!$code) {
-            httpError(500, "There was a problem looking up the code by ID: $codeId");
+            $code = getCodeById($codeId, CODE);
+            if (!$code) {
+                httpError(500, "There was a problem looking up the code by ID: $codeId");
+            }
         }
+        $interactionType = ACCESS_TOKEN_REQUEST;
+        $grant = [
+            GRANT_TYPE => AUTHORIZATION_CODE,
+            CODE => $code,
+        ];
     }
     $data = [
         HEADERS => [
             'schema' => 'st-schema',
             'version' => '1.0',
-            INTERACTION_TYPE => ACCESS_TOKEN_REQUEST,
+            INTERACTION_TYPE => $interactionType,
             REQUEST_ID => uuidv4(),
         ],
-        CALLBACK_AUTHENTICATION => [
-            GRANT_TYPE => AUTHORIZATION_CODE,
-            CODE => $code,
+        CALLBACK_AUTHENTICATION => $grant + [
             CLIENT_ID => ST_CLIENT_ID,
             CLIENT_SECRET => ST_CLIENT_SECRET,
         ]
@@ -1780,9 +1807,11 @@ function makeAccessTokenRequest(string $tokenUri, int $codeId, ?string $code = n
          */
         if (array_key_exists(HEADERS, $response) && array_key_exists(CALLBACK_AUTHENTICATION, $response)) {
             $auth = $response[CALLBACK_AUTHENTICATION];
-            if (array_key_exists(ACCESSTOKEN, $auth) && array_key_exists(REFRESHTOKEN, $auth)) {
+            // The refresh token is static, so a refresh response may not repeat it
+            $newRefreshToken = $auth[REFRESHTOKEN] ?? $refreshToken;
+            if (array_key_exists(ACCESSTOKEN, $auth) && $newRefreshToken) {
                 // Insert the callback token data into the database
-                $lastId = insertCallbackToken($auth[ACCESSTOKEN], $auth[REFRESHTOKEN], $codeId, $auth[EXPIRESIN]);
+                $lastId = insertCallbackToken($auth[ACCESSTOKEN], $newRefreshToken, $codeId, $auth[EXPIRESIN]);
                 logtext("Inserted new callback token with ID: $lastId");
                 return $auth[ACCESSTOKEN];
             }
@@ -1805,19 +1834,24 @@ function performStateCallbacks(?array $userIds = null)
 
     // Get (or request) access tokens for each
     foreach ($codeRows as $codeRow) {
-        $token = getAccessTokenByCode($codeRow);
-        $stateCallbackUri = $codeRow[STATE_URI];
-        if ($token) {
-            $beds = getBeds(false, $codeRow[USER_ID]);
+        // A failure for one user shouldn't prevent callbacks for the rest
+        try {
+            $token = getAccessTokenByCode($codeRow);
+            $stateCallbackUri = $codeRow[STATE_URI];
+            if ($token) {
+                $beds = getBeds(false, $codeRow[USER_ID]);
 
-            $idsAndSides = [];
-            foreach ($beds as $bed) {
-                foreach ($bed->sides as $side) {
-                    $idsAndSides[$bed->id][$side] = $side;
+                $idsAndSides = [];
+                foreach ($beds as $bed) {
+                    foreach ($bed->sides as $side) {
+                        $idsAndSides[$bed->id][$side] = $side;
+                    }
                 }
+                // Make stateCallback requests for each
+                makeStateCallbackRequest($token, $idsAndSides, $stateCallbackUri);
             }
-            // Make stateCallback requests for each
-            makeStateCallbackRequest($token, $idsAndSides, $stateCallbackUri);
+        } catch (Throwable $e) {
+            logtext("###State callback failed for userId {$codeRow[USER_ID]}: " . get_class($e) . " {$e->getCode()} {$e->getMessage()}");
         }
     }
 }

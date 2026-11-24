@@ -198,6 +198,8 @@ The cron job functionality is configured to only perform on users that have:
 
 If the callback for one user fails (e.g. SmartThings rejects their token refresh), the error is logged as `###State callback failed for userId ...` and the cron continues with the remaining users.
 
+If SmartThings rejects a token refresh with `INVALID-TOKEN` (the refresh token was revoked, e.g. because the user removed the integration), that user's `st_callback_code` rows and their `st_callback_token` rows are deleted, so later cron runs make no requests on their behalf. Their `st_user_settings` are kept, and callbacks resume if they link the integration again, since that sends a new `grantCallbackAccess`.
+
 # Running tests
 `php tests/callbacks_test.php` tests the callback token exchange/refresh, the state callback cron flow, and log sanitization. It needs the `pdo_sqlite` and `curl` PHP extensions, and does not use `oauth/settings.php`, the database, SleepNumber or SmartThings: the database is an in-memory SQLite one and SmartThings is mocked by `tests/mock_smartthings.php` on PHP's built-in server.
 

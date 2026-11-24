@@ -198,7 +198,7 @@ define('IS_CRON', true);
  */
 function addUser(string $userId, string $accessToken, string $refreshToken, string $expiresAt): int
 {
-    $codeId = insertCallbackCode("partner-token-$userId", "code-$userId", $userId, MOCK_URL . '/oauth/token', MOCK_URL . '/device/events');
+    $codeId = insertCallbackCode("partner-token-$userId", uniqid("code-$userId-"), $userId, MOCK_URL . '/oauth/token', MOCK_URL . '/device/events');
     getDb()->insert(ST_CALLBACK_TOKEN, [
         ACCESS_TOKEN => $accessToken,
         REFRESH_TOKEN => $refreshToken,
@@ -216,6 +216,26 @@ function mockRequests(): array
 {
     $lines = file_exists(MOCK_LOG) ? file(MOCK_LOG, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
     return array_map(fn($line) => json_decode($line, true), $lines);
+}
+
+/**
+ * @return int[] The number of callback codes for a user, and the number of tokens belonging to them
+ */
+function countCallbackRows(string $userId): array
+{
+    global $pdo;
+    $codes = $pdo->query("SELECT COUNT(*) FROM st_callback_code WHERE user_id = " . $pdo->quote($userId))->fetchColumn();
+    $tokens = $pdo->query("SELECT COUNT(*) FROM st_callback_token WHERE st_callback_code_id IN (SELECT id FROM st_callback_code WHERE user_id = " . $pdo->quote($userId) . ")")->fetchColumn();
+    return [(int) $codes, (int) $tokens];
+}
+
+/**
+ * @return int The number of tokens in the table, including any whose code was deleted
+ */
+function countAllTokens(): int
+{
+    global $pdo;
+    return (int) $pdo->query('SELECT COUNT(*) FROM st_callback_token')->fetchColumn();
 }
 
 function logContents(): string
@@ -316,6 +336,44 @@ test('a failed refresh for one user does not stop callbacks for the next', funct
     check(($requests[0]['body'][CALLBACK_AUTHENTICATION][REFRESHTOKEN] ?? null) == 'bad-refresh', "carol's refresh should run first");
     check(($requests[2]['body'][AUTHENTICATION][TOKEN] ?? null) == 'access-from-refresh', "dave's state callback should use his refreshed token");
     check(str_contains(logContents(), 'State callback failed for userId carol: HttpErrorException 401'), "carol's failure should be logged");
+    check(countCallbackRows('carol') == [1, 1], 'An error other than INVALID-TOKEN should not delete callback codes');
+});
+
+test("a revoked refresh token deletes that user's callback codes and tokens, and later runs skip them", function () use ($past, $future) {
+    addUser('grace', 'old-access', 'old-refresh', $past);
+    addUser('grace', 'older-access', 'older-refresh', $past);
+    addUser('grace', 'expired-access', 'revoked-refresh', $past);
+    addUser('heidi', 'still-valid', 'good-refresh', $future);
+    performStateCallbacks(['grace', 'heidi']);
+
+    $log = logContents();
+    check(countCallbackRows('grace') == [0, 0], "All of grace's callback codes and tokens should be deleted, got " . json_encode(countCallbackRows('grace')));
+    check(countAllTokens() == 1, 'No tokens should be left without a code');
+    check(countCallbackRows('heidi') == [1, 1], "heidi's callback code and token should be kept");
+    check(str_contains($log, '###Deleted 3 callback codes and 3 callback tokens for userId grace'), 'The deletion should be logged');
+    check(str_contains($log, 'State callback failed for userId grace: HttpErrorException 401'), "grace's failure should still be logged");
+    $paths = array_column(mockRequests(), 'path');
+    check($paths == ['/oauth/token', '/device/events'], "grace's refresh then heidi's state callback should be sent, got " . json_encode($paths));
+
+    // The next run makes no requests for grace
+    @unlink(MOCK_LOG);
+    performStateCallbacks(['grace', 'heidi']);
+    $requests = mockRequests();
+    check(count($requests) == 1 && ($requests[0]['body'][AUTHENTICATION][TOKEN] ?? null) == 'still-valid', 'Only heidi should get a state callback on the next run');
+});
+
+test('deleting callback codes keeps newer codes and other users', function () use ($future) {
+    $oldCodeId = addUser('ivan', 'old-access', 'old-refresh', $future);
+    $revokedCodeId = addUser('ivan', 'revoked-access', 'revoked-refresh', $future);
+    // A new grantCallbackAccess that arrived after the revoked code
+    $newCodeId = addUser('ivan', 'new-access', 'new-refresh', $future);
+    addUser('judy', 'judy-access', 'judy-refresh', $future);
+    deleteCallbackCodes('ivan', $revokedCodeId);
+
+    check(getCodeById($oldCodeId) === false && getCodeById($revokedCodeId) === false, 'Codes up to the revoked one should be deleted');
+    check(getCodeById($newCodeId) !== false && getTokenByCodeId($newCodeId) !== false, 'The newer code and its token should be kept');
+    check(countCallbackRows('ivan') == [1, 1], 'Only the newer code should remain for ivan');
+    check(countCallbackRows('judy') == [1, 1], "Another user's code should be kept");
 });
 
 test('httpError still responds and exits outside a cron run', function () {

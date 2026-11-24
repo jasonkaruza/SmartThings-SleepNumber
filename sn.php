@@ -25,13 +25,16 @@ define('DEVICES', 'devices');
 define('DEVICE_STATE', 'deviceState');
 define('DISCOVERY_REQUEST', 'discoveryRequest');
 define('DISCOVERY_RESPONSE', 'discoveryResponse');
+define('ERROR_ENUM', 'errorEnum');
 define('EXTERNAL_DEVICE_ID', 'externalDeviceId');
+define('GLOBAL_ERROR', 'globalError');
 define('GRANT_CALLBACK_ACCESS', 'grantCallbackAccess');
 define('GRANT_TYPE', 'grantType');
 define('HEADERS', 'headers');
 define('INTEGRATION_DELETED', 'integrationDeleted');
 define('INTERACTION_RESULT', 'interactionResult');
 define('INTERACTION_TYPE', 'interactionType');
+define('INVALID_TOKEN', 'INVALID-TOKEN');
 define('OAUTH_TOKEN', 'oauthToken');
 define('REFRESH_ACCESS_TOKENS', 'refreshAccessTokens');
 define('REFRESH_TOKEN_GRANT', 'refresh_token');
@@ -1702,7 +1705,19 @@ function getAccessTokenByCode(array $codeRow): string|null
                 logtext("The latest token has expired: {$tokenRow[EXPIRES_AT]} >= now");
                 // The latest token has expired, so we need to get a new one using the refresh token
                 $refreshToken = $tokenRow[REFRESH_TOKEN];
-                $accessCode = makeAccessTokenRequest($tokenUri, $codeId, refreshToken: $refreshToken);
+                try {
+                    $accessCode = makeAccessTokenRequest($tokenUri, $codeId, refreshToken: $refreshToken);
+                } catch (HttpErrorException $e) {
+                    // The message is the JSON-encoded response body
+                    $body = json_decode(json_decode($e->getMessage()) ?? '', true);
+                    // SmartThings revoked the refresh token (e.g. the integration was removed), so
+                    // every refresh will fail. Stop using this user's callback codes until a new
+                    // grantCallbackAccess creates one.
+                    if (($body[GLOBAL_ERROR][ERROR_ENUM] ?? null) == INVALID_TOKEN) {
+                        deleteCallbackCodes($userId, $codeId);
+                    }
+                    throw $e;
+                }
             } else {
                 logtext("The latest token ID {$tokenRow[ID]} is still valid");
                 // The latest token is still valid, so just return it
@@ -2035,6 +2050,34 @@ function insertCallbackToken(string $accessToken, string $refreshToken, int $cod
     }
 
     return $lastId;
+}
+
+/**
+ * Delete a user's callback codes up to and including $maxCodeId, and their tokens.
+ * Codes newer than $maxCodeId are kept, in case a new grantCallbackAccess arrived in the meantime.
+ * @param string $userId The ID of the user whose codes to delete
+ * @param int $maxCodeId The ID of the newest ST_CALLBACK_CODE row to delete
+ */
+function deleteCallbackCodes(string $userId, int $maxCodeId): void
+{
+    $db = getDb();
+    $codeIds = array_filter(
+        array_column($db->select(ST_CALLBACK_CODE, [ID], [USER_ID => $userId]), ID),
+        fn($id) => $id <= $maxCodeId
+    );
+    $deletedTokens = 0;
+    $db->beginTransaction();
+    try {
+        foreach ($codeIds as $codeId) {
+            $deletedTokens += $db->delete(ST_CALLBACK_TOKEN, [ST_CALLBACK_CODE_ID => $codeId]);
+            $db->delete(ST_CALLBACK_CODE, [ID => $codeId]);
+        }
+        $db->commit();
+    } catch (Throwable $e) {
+        $db->rollback();
+        throw $e;
+    }
+    logtext("###Deleted " . count($codeIds) . " callback codes and $deletedTokens callback tokens for userId $userId");
 }
 
 /**

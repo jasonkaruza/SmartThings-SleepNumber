@@ -14,14 +14,10 @@
  * /device/events
  *   - 200 with an empty body, as production returns
  */
-$body = file_get_contents('php://input');
-$request = json_decode($body, true) ?: [];
-file_put_contents(getenv('MOCK_LOG'), json_encode([
-    'path' => parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH),
-    'body' => $request,
-]) . "\n", FILE_APPEND);
-
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$request = json_decode(file_get_contents('php://input'), true) ?: [];
+file_put_contents(getenv('MOCK_LOG'), json_encode(['path' => $path, 'body' => $request]) . "\n", FILE_APPEND);
+
 $auth = $request['callbackAuthentication'] ?? [];
 $grantType = $auth['grantType'] ?? null;
 
@@ -54,7 +50,7 @@ if ($path == '/oauth/token') {
     } elseif ($grantType == 'refresh_token' && ($auth['refreshToken'] ?? null) == 'revoked-refresh') {
         http_response_code(401);
         print json_encode([
-            'headers' => ['interactionType' => 'refreshAccessTokens'] + $headers,
+            'headers' => $headers,
             'globalError' => ['errorEnum' => 'INVALID-TOKEN', 'detail' => 'refresh token provided is revoked'],
         ]);
     } else {
@@ -64,8 +60,6 @@ if ($path == '/oauth/token') {
             'globalError' => ['errorEnum' => 'INVALID-CODE', 'detail' => 'the provided code is invalid'],
         ]);
     }
-} elseif ($path == '/device/events') {
-    http_response_code(200);
-} else {
+} elseif ($path != '/device/events') {
     http_response_code(404);
 }

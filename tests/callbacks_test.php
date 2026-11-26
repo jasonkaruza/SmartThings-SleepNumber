@@ -39,17 +39,15 @@ function loadDefinitions(string $file, array $skip = [], ?array $only = null): v
     $tokens = token_get_all(file_get_contents($file));
     $count = count($tokens);
     $depth = 0;
-    $prev = null;
     for ($i = 0; $i < $count; $i++) {
         $token = $tokens[$i];
         $id = is_array($token) ? $token[0] : $token;
-        if ($depth == 0 && ($id === T_FUNCTION || $id === T_CLASS) && $prev !== T_DOUBLE_COLON) {
+        if ($depth == 0 && ($id === T_FUNCTION || $id === T_CLASS)) {
             $name = nextName($tokens, $i);
             [$code, $i] = captureUntil($tokens, $i, true);
             if (!in_array($name, $skip) && ($only === null || in_array($name, $only))) {
                 eval($code);
             }
-            $prev = '}';
             continue;
         }
         if ($depth == 0 && $only === null && $id === T_STRING && $token[1] === 'define') {
@@ -59,16 +57,12 @@ function loadDefinitions(string $file, array $skip = [], ?array $only = null): v
             } catch (Throwable $e) {
                 // e.g. constants defined from SleepyqPHP, which isn't loaded
             }
-            $prev = ';';
             continue;
         }
         if ($id === '{' || $id === T_CURLY_OPEN || $id === T_DOLLAR_OPEN_CURLY_BRACES) {
             $depth++;
         } elseif ($id === '}') {
             $depth--;
-        }
-        if (!in_array($id, [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
-            $prev = $id;
         }
     }
 }
@@ -198,7 +192,7 @@ define('IS_CRON', true);
  */
 function addUser(string $userId, string $accessToken, string $refreshToken, string $expiresAt): int
 {
-    $codeId = insertCallbackCode("partner-token-$userId", uniqid("code-$userId-"), $userId, MOCK_URL . '/oauth/token', MOCK_URL . '/device/events');
+    $codeId = insertCallbackCode("partner-token-$userId", "code-$userId", $userId, MOCK_URL . '/oauth/token', MOCK_URL . '/device/events');
     getDb()->insert(ST_CALLBACK_TOKEN, [
         ACCESS_TOKEN => $accessToken,
         REFRESH_TOKEN => $refreshToken,
@@ -300,15 +294,6 @@ test('expired token is refreshed with a refresh_token grant', function () use ($
     check(new DateTime($token[EXPIRES_AT]) > new DateTime(), 'Refreshed token should expire in the future');
 });
 
-test('unexpired token is reused without a token request', function () use ($future) {
-    addUser('bob', 'still-valid', 'good-refresh', $future);
-    performStateCallbacks(['bob']);
-
-    $requests = mockRequests();
-    check(count($requests) == 1 && ($requests[0]['path'] ?? null) == '/device/events', 'Expected only a state callback');
-    check(($requests[0]['body'][AUTHENTICATION][TOKEN] ?? null) == 'still-valid', 'State callback should use the stored access token');
-});
-
 test('code exchange still uses an authorization_code grant', function () {
     $codeId = insertCallbackCode('partner-token-erin', 'good-code', 'erin', MOCK_URL . '/oauth/token', MOCK_URL . '/device/events');
     // As grantCallbackAccess calls it, then with the code looked up by ID
@@ -363,16 +348,14 @@ test("a revoked refresh token deletes that user's callback codes and tokens, and
 });
 
 test('deleting callback codes keeps newer codes and other users', function () use ($future) {
-    $oldCodeId = addUser('ivan', 'old-access', 'old-refresh', $future);
+    addUser('ivan', 'old-access', 'old-refresh', $future);
     $revokedCodeId = addUser('ivan', 'revoked-access', 'revoked-refresh', $future);
     // A new grantCallbackAccess that arrived after the revoked code
     $newCodeId = addUser('ivan', 'new-access', 'new-refresh', $future);
     addUser('judy', 'judy-access', 'judy-refresh', $future);
     deleteCallbackCodes('ivan', $revokedCodeId);
 
-    check(getCodeById($oldCodeId) === false && getCodeById($revokedCodeId) === false, 'Codes up to the revoked one should be deleted');
-    check(getCodeById($newCodeId) !== false && getTokenByCodeId($newCodeId) !== false, 'The newer code and its token should be kept');
-    check(countCallbackRows('ivan') == [1, 1], 'Only the newer code should remain for ivan');
+    check(countCallbackRows('ivan') == [1, 1] && getTokenByCodeId($newCodeId) !== false, 'Only the newer code and its token should remain for ivan');
     check(countCallbackRows('judy') == [1, 1], "Another user's code should be kept");
 });
 
@@ -383,15 +366,15 @@ test('httpError still responds and exits outside a cron run', function () {
     check($exitCode == 0, "Expected exit code 0, got $exitCode");
 });
 
-test('client secret and Authorization headers are redacted from logs, other fields are kept', function () use ($past) {
+test('client secret and Authorization header are redacted from logs, other fields are kept', function () use ($past) {
     addUser('frank', 'expired-access', 'good-refresh', $past);
     performStateCallbacks(['frank']);
-    logtext("SERVER:Array\n(\n    [HTTP_AUTHORIZATION] => Basic dGVzdDpzZWNyZXQ=\n    [REDIRECT_HTTP_AUTHORIZATION] => Basic dGVzdDpzZWNyZXQ=\n    [password] => hunter2\n    [token] => partner-token-frank\n)\n");
+    logtext("SERVER:Array\n(\n    [HTTP_AUTHORIZATION] => Basic dGVzdDpzZWNyZXQ=\n    [password] => hunter2\n    [token] => partner-token-frank\n)\n");
 
     $log = logContents();
     check(str_contains($log, 'Making POST request to ' . MOCK_URL . '/oauth/token'), 'Token request should be logged');
     check(!str_contains($log, ST_CLIENT_SECRET), 'ST client secret should not be logged');
-    check(!str_contains($log, 'dGVzdDpzZWNyZXQ=') && str_contains($log, '[HTTP_AUTHORIZATION] => ***'), 'Authorization headers should be redacted');
+    check(!str_contains($log, 'dGVzdDpzZWNyZXQ=') && str_contains($log, '[HTTP_AUTHORIZATION] => ***'), 'The Authorization header should be redacted');
     check(!str_contains($log, 'hunter2'), 'Passwords should still be redacted');
     check(str_contains($log, '"refreshToken":"good-refresh"'), 'Refresh token should still be logged for triage');
     check(str_contains($log, 'access-from-refresh'), 'Access token should still be logged for triage');

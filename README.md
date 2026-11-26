@@ -196,6 +196,13 @@ The cron job functionality is configured to only perform on users that have:
 1. A `sleep_start_time` and `sleep_end_time` that is not `NULL` in `st_user_settings`
 2. Execute the callbacks to SmartThings when the current time is between `sleep_start_time` and `sleep_end_time`
 
+If the callback for one user fails (e.g. SmartThings rejects their token refresh), the error is logged as `###State callback failed for userId ...` and the cron continues with the remaining users.
+
+If SmartThings rejects a token refresh with `INVALID-TOKEN` (the refresh token was revoked, e.g. because the user removed the integration), that user's `st_callback_code` rows and their `st_callback_token` rows are deleted, so later cron runs make no requests on their behalf. Their `st_user_settings` are kept, and callbacks resume if they link the integration again, since that sends a new `grantCallbackAccess`.
+
+# Running tests
+`php tests/callbacks_test.php` tests the callback token exchange/refresh, the state callback cron flow, and log sanitization. It needs the `pdo_sqlite` and `curl` PHP extensions, and does not use `oauth/settings.php`, the database, SleepNumber or SmartThings: the database is an in-memory SQLite one and SmartThings is mocked by `tests/mock_smartthings.php` on PHP's built-in server.
+
 # SmartThings App (Android) Device Adding
 1. In the SmartThings app, enable Developer Mode under Menu->Settings gear->Push and hold About SmartThings for 5 seconds->scroll down a bit and see Developer Mode toggle->toggle it on and restart the app.
 2. To add a test device go to Devices tab->+ in top right->Add device->Partner Devices->My Testing Devices->Select the device
